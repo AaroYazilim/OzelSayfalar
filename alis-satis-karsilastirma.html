@@ -24,7 +24,7 @@
                 "KullaniciGrupID": "2",
                 "KullaniciGrupKodu": "YNTC",
                 "KullaniciGrupAdi": "Yönetici Grubu",
-                "Token": "pat_wTjKHRFhTJgZNSeoEdvLae_eJDcxgoU8yIqbFKFQl64"
+                "Token": ":)"
             },
             "QueryString": {},
             "Form": {}
@@ -207,7 +207,7 @@ defaultSystemPrompt += ' You are a senior sales analyst in Turkey. Analyze the p
 
         $('#raporFormu').on('submit', function(e) {
             e.preventDefault();
-            const bearerToken = "pat_wTjKHRFhTJgZNSeoEdvLae_eJDcxgoU8yIqbFKFQl64";
+            const bearerToken = ":)";
             const filtreler = {
                 TarihBas: $('#baslangicTarihi').val() || undefined,
                 TarihSon: $('#bitisTarihi').val() || undefined,
@@ -288,7 +288,7 @@ defaultSystemPrompt += ' You are a senior sales analyst in Turkey. Analyze the p
             - Top 5 Least Profitable Accounts (Sales - Purchases): ${g_kpiData.enZararliCariler.map(c => `${c.KartAdi}: ${formatCurrency(c.Bakiye)}`).join(', ')}`;
 
             try {
-                const apiKey = "AIzaSyAcXqPH_HnmWwcUXJR00C00iIzi_eXdBuk"; 
+                const apiKey = "{{GeminiApiKey}}"; 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const payload = {

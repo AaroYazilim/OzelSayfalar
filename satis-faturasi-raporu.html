@@ -26,7 +26,7 @@
                 "KullaniciGrupID": "2",
                 "KullaniciGrupKodu": "YNTC",
                 "KullaniciGrupAdi": "Yönetici Grubu",
-                "Token": "YOUR_ACTUAL_BEARER_TOKEN" // Buraya gerçek token'ınızı eklemelisiniz.
+                "Token": ":)" // Buraya gerçek token'ınızı eklemelisiniz.
             },
             "QueryString": {},
             "Form": {}
@@ -391,7 +391,7 @@ defaultSystemPrompt += ' You are a senior sales analyst in Turkey. Analyze the p
         
         $('#raporFormu').on('submit', function(e) {
             e.preventDefault();
-            const bearerToken = "pat_y0CmRQ9Nyhk1Yhi5i0BVyB38csf9P__Qz4y2LMPR9Q8";
+            const bearerToken = "";
             if (!bearerToken) { alert("Bearer Token bulunamadı."); return; }
             
             const filtreler = {
