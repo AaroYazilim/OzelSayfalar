@@ -641,12 +641,12 @@
             showLoading();
             hideError();
 
-            // Token kontrolü
-            if (!bearerToken || bearerToken === ":)") {
-                showError("Geçerli bir kullanıcı oturumu bulunamadı (Token eksik). Lütfen tekrar giriş yapın.");
-                hideLoading();
-                return;
-            }
+            // // Token kontrolü
+            // if (!bearerToken || bearerToken === ":)") {
+            //     showError("Geçerli bir kullanıcı oturumu bulunamadı (Token eksik). Lütfen tekrar giriş yapın.");
+            //     hideLoading();
+            //     return;
+            // }
 
             // Mevcut DataTables'ı yok et (varsa)
             $('.datatable-dynamic').each(function() {
