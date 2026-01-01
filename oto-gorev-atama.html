@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinamik Görev Gönderimi</title>
+
+    <script class="AaroOnTanimGecici">
+        var Aaro = {
+            "SayfaKodu": "DinamikGorevGonderim",
+            "SayfaAdi": "Dinamik Görev Gönderimi",
+            "AnaUrl": "https://localhost:44346/",
+            "Tarih": "2025-09-22 14:26:41",
+            "IsAuthenticated": "True",
+            "UserIP": "127.0.0.1",
+            "Oturum": {
+                "KullaniciKodu": "yonetici@temel",
+                "KullaniciAdi": "A Kullanicisi",
+                "KullaniciID": "2",
+                // ... (diğer Aaro verileri)
+            },
+            "QueryString": {},
+            "Form": {}
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        :root {
+            --kurumsal-mavi: #0d47a1;
+            --kurumsal-gri: #f5f7fa;
+            --kurumsal-kenarlik: #dee2e6;
+            --kurumsal-golge: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --basari: #28a745;
+            --tehlike: #dc3545;
+            --bilgi: #17a2b8;
+            --uyari: #ffc107; /* YENİ: Uyarı rengi */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--kurumsal-gri);
+        }
+        .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            border-radius: 0.5rem;
+            box-shadow: var(--kurumsal-golge);
+        }
+        .card-header {
+            background-color: #fff;
+            color: var(--kurumsal-mavi);
+            font-weight: 600;
+        }
+        .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-primary { background-color: var(--kurumsal-mavi); border-color: var(--kurumsal-mavi); }
+        .btn-success { background-color: var(--basari); border-color: var(--basari); }
+        .btn-danger { background-color: var(--tehlike); border-color: var(--tehlike); }
+        .btn-info { background-color: var(--bilgi); border-color: var(--bilgi); }
+        .btn-warning { background-color: var(--uyari); border-color: var(--uyari); color: #212529; } /* YENİ */
+        .nav-tabs .nav-link.active {
+            color: var(--kurumsal-mavi);
+            border-bottom: 2px solid var(--kurumsal-mavi);
+        }
+        .form-control-sm { height: calc(1.5em + 0.5rem + 2px); }
+    </style>
+</head>
+<body>
+    <div class="container-fluid my-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="sayfa-adi" class="mb-0">Dinamik Görev Gönderimi</h2>
+            <div class="text-muted">
+                <i class="fas fa-user-circle"></i> 
+                <span id="kullanici-kodu">{{Oturum.KullaniciKodu}}</span>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="tablo-tab" data-toggle="tab" href="#tablo" role="tab" aria-controls="tablo" aria-selected="true"><i class="fas fa-tasks mr-2"></i>Görev Listesi</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="tablo" role="tabpanel" aria-labelledby="tablo-tab">
+                        <div class="pt-3">
+                            <button class="btn btn-success mb-3" id="btn-send-all">
+                                <i class="fas fa-paper-plane mr-1"></i> Tümünü Gönder
+                            </button>
+                            <button class="btn btn-info mb-3 ml-2" id="btn-add-task">
+                                <i class="fas fa-plus mr-1"></i> Yeni Görev Ekle
+                            </button>
+                            <button class="btn btn-warning mb-3 ml-2" id="btn-reset-cookie">
+                                <i class="fas fa-undo mr-1"></i> Ayarları Sıfırla
+                            </button>
+                             <div class="table-responsive">
+                                <table id="gorevTable" class="table table-striped table-bordered" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>Görev Açıklaması</th>
+                                            <th style="width: 15%;">Atanan Kullanıcı ID</th>
+                                            <th style="width: 15%;">Durum</th>
+                                            <th style="width: 15%;">İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Aaro nesnesinden bilgileri loglama ve sayfaya yazma
+        console.log("Giriş yapan kullanıcı:", Aaro.Oturum.KullaniciAdi);
+        document.getElementById('sayfa-adi').innerText = Aaro.SayfaAdi;
+        document.getElementById('kullanici-kodu').innerText = Aaro.Oturum.KullaniciKodu;
+    </script>
+    
+    <script>
+        // --- API VE VERİ TANIMLAMALARI ---
+        const API_URL = "https://erp.aaro.com.tr/api/Gorevler/GorevKaydet";
+        const HEADERS = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer pat_wTjKHRFhTJgZNSeoEdvLae_eJDcxgoU8yIqbFKFQl64"
+        };
+        
+        // --- YENİ: COOKIE YÖNETİMİ ---
+        const COOKIE_NAME = 'dinamikGorevListesi';
+
+        /**
+         * Cookie oluşturur veya günceller.
+         * @param {string} name Cookie adı
+         * @param {string} value Cookie değeri
+         * @param {number} days Geçerlilik süresi (gün)
+         */
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+        }
+
+        /**
+         * Cookie değerini okur.
+         * @param {string} name Cookie adı
+         * @returns {string|null} Cookie değeri veya bulunamazsa null
+         */
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        /**
+         * Cookie'yi siler.
+         * @param {string} name Cookie adı
+         */
+        function eraseCookie(name) {
+            document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
+
+        /**
+         * YENİ: Görev listesini JSON olarak string'e çevirip cookie'ye kaydeder.
+         */
+        function saveTasksToCookie() {
+            try {
+                const jsonValue = JSON.stringify(GOREV_LISTESI);
+                setCookie(COOKIE_NAME, jsonValue, 30); // 30 gün geçerli
+                console.log("Görev listesi cookie'ye kaydedildi.");
+            } catch (e) {
+                console.error("Cookie'ye kaydetme hatası:", e);
+            }
+        }
+        // --- YENİ: COOKIE YÖNETİMİ BİTİŞ ---
+
+
+        // YENİ: Başlangıç verisi artık 'varsayılan' (default) olarak tanımlandı.
+        const DEFAULT_GOREV_LISTESI = [
+          {
+        "gorev": "Teknik resim üzerindeki boyutsal ölçüler ve toleranslar incelendi mi?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Parçanın geometrisi normal şartlarda üretime uygun mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Parça firma alt yapısında var olan imkânlarla üretilip ölçülebilir mi?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Gerekli teknik ve programsal alt yapı mevcut mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Diş kontrollerinin sağlıklı yapılabilmesi için firma bünyesinde geçer/geçmez diş mastarları mevcut mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Tanımlı istenilen standartlardaki ham malzeme bulunabiliyor mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Alt yüklenici ihtiyaçları belirlenmiş karşılanabiliyor mu",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Isıl işlem yapılabiliyor mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "İstenilen standartlarda kaplama, pasivasyon, manyetik test, penetrant vb yüzey işlemleri piyasa koşullarında yapılabiliyor mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "İstenilen markalama belirlenen alana yapılabiliyor mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Kişisel ve ürün güvenliği sağlanabiliyor mu?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Kritik ölçüler yada prosesler belirlendi mi?",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    },
+    {
+        "gorev": "Uygun olmayan ürünlerle ilgili süreçler doğrulandı mı",
+        "GorevKullanicilari": [
+            {
+                "KullaniciID": 77,
+                "KullaniciGrupID": null,
+                "TipID": 151002
+            }
+        ]
+    }
+        ];
+        
+        // YENİ: Ana veri listemiz. Değeri loadTasksFromCookieOrDefaults() fonksiyonunda atanacak.
+        let GOREV_LISTESI; 
+
+        /**
+         * YENİ: GOREV_LISTESI'ni cookieden yükler. Cookie yoksa veya bozuksa varsayılanı kullanır.
+         */
+        function loadTasksFromCookieOrDefaults() {
+            const cookieData = getCookie(COOKIE_NAME);
+            if (cookieData) {
+                try {
+                    const parsedData = JSON.parse(cookieData);
+                    // Basit bir doğrulama (dizi mi?)
+                    if (Array.isArray(parsedData)) {
+                        GOREV_LISTESI = parsedData;
+                        console.log("Görev listesi cookie'den yüklendi.");
+                        return; // Cookieden başarıyla yüklendi, fonksiyondan çık
+                    } else {
+                         console.warn("Cookie verisi bir dizi değil, varsayılanlar yükleniyor.");
+                    }
+                } catch (e) {
+                    console.error("Cookie parse hatası, varsayılanlar yükleniyor.", e);
+                    eraseCookie(COOKIE_NAME); // Bozuk cookie'yi temizle
+                }
+            }
+            
+            // Cookie yoksa veya hatalıysa, varsayılanların 'deep copy'sini al
+            GOREV_LISTESI = JSON.parse(JSON.stringify(DEFAULT_GOREV_LISTESI));
+            console.log("Varsayılan görev listesi yüklendi.");
+        }
+
+
+        // Yeni görevler için şablon
+        const YENI_GOREV_SABLONU = {
+            "gorev": "Yeni görev açıklaması...",
+            "GorevKullanicilari": [
+                { "KullaniciID": 0, "KullaniciGrupID": null, "TipID": 151002 }
+            ]
+        };
+
+        // 200ms bekleme (rate limit için)
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        
+        // HTML'i güvenli hale getirmek için (XSS önlemi)
+        function escapeHtml(unsafe) {
+            if (unsafe === null || unsafe === undefined) return '';
+            return unsafe
+                 .toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+
+        // --- TABLO YÖNETİMİ ---
+
+        /**
+         * GOREV_LISTESI dizisini tabloya (inputlar ile) render eder.
+         */
+        function renderTable() {
+            const $tbody = $('#gorevTable tbody');
+            $tbody.empty(); // Tabloyu temizle
+
+            if (GOREV_LISTESI.length === 0) {
+                $tbody.html('<tr><td colspan="4" class="text-center">Gönderilecek görev bulunamadı.</td></tr>');
+                return;
+            }
+
+            GOREV_LISTESI.forEach((gorev, index) => {
+                // Her görev için KullaniciID'yi al (varsayılan olarak ilk kullanıcıyı düzenletiyoruz)
+                const kullaniciID = gorev.GorevKullanicilari.length > 0 ? gorev.GorevKullanicilari[0].KullaniciID : 0;
+
+                const row = `
+                    <tr id="row-${index}">
+                        <td>
+                            <input type="text" class="form-control form-control-sm task-description" data-index="${index}" value="${escapeHtml(gorev.gorev)}">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm task-user-id" data-index="${index}" value="${kullaniciID}">
+                        </td>
+                        <td id="status-${index}">
+                            <span class="badge badge-secondary">Bekliyor</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary btn-gonder" data-index="${index}" title="Gönder">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-delete" data-index="${index}" title="Sil">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        }
+
+        // --- API İŞLEMLERİ ---
+
+        /**
+         * Verilen indeksteki GÜNCEL görevi API'ye gönderir.
+         * @param {number} index - GOREV_LISTESI içindeki görevin indeksi.
+         */
+        async function sendTask(index) {
+            // GÖNDERMEDEN ÖNCE DİZİDEN EN GÜNCEL VERİYİ OKU
+            const gorev_bilgisi = GOREV_LISTESI[index];
+            
+            const $statusCell = $(`#status-${index}`);
+            const $button = $(`.btn-gonder[data-index="${index}"]`);
+            const $row = $(`#row-${index}`);
+
+            $button.prop('disabled', true);
+            $row.find('input').prop('disabled', true); // Düzenlemeyi kitle
+            $statusCell.html('<span class="badge badge-info"><i class="fas fa-spinner fa-spin"></i> Gönderiliyor...</span>');
+
+            // API'ye gönderilecek olan ana veri yapısını (payload) oluşturuyoruz.
+            // Bu veri, inputlardan 'change' eventleri ile güncellenen GOREV_LISTESI'nden gelir.
+            const payload = {
+                "GorevAdi": gorev_bilgisi.gorev,
+                "Aciklama": gorev_bilgisi.gorev,
+                "TarihBit": "2025-10-24",
+                "HatirlatmaGunSayisi": 1,
+                "TamamlanmaOrani": 0,
+                "TamamlanmaTipi": 0,
+                "TekrarSekli": 0,
+                "TabloID": 9001,
+                "TabloSatirID": 1528,
+                "GorevKullanicilari": gorev_bilgisi.GorevKullanicilari,
+                "GorevYoneticileri": [
+                    { "KullaniciID": 77, "KullaniciGrupID": null, "TipID": 151001 }
+                ]
+            };
+
+            try {
+                const responseData = await $.ajax({
+                    url: API_URL,
+                    method: 'POST',
+                    headers: HEADERS,
+                    data: JSON.stringify(payload),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json'
+                });
+                
+                $statusCell.html('<span class="badge badge-success">Başarılı</span>');
+                $row.addClass('table-success'); // Satırı yeşile boya
+                console.log(`Görev ${index} başarılı:`, responseData);
+
+            } catch (error) {
+                $statusCell.html('<span class="badge badge-danger">Hata</span>');
+                $row.addClass('table-danger'); // Satırı kırmızıya boya
+                console.error(`Görev ${index} hata:`, error.responseJSON || error.responseText || error);
+                $button.prop('disabled', false); // Hata olursa tekrar denenebilsin
+                $row.find('input').prop('disabled', false);
+            }
+        }
+
+        // --- OLAY YAKALAYICILAR (EVENT LISTENERS) ---
+        $(document).ready(function() {
+            
+            // 1. YENİ: Görevleri Yükle (Cookie'den veya Varsayılanlardan)
+            loadTasksFromCookieOrDefaults();
+
+            // 2. Görev listesini tabloya ilk kez çiz
+            renderTable();
+
+            // 3. YENİ: Cookie Sıfırla butonu
+            $('#btn-reset-cookie').on('click', function() {
+                if (confirm('Kaydedilmiş tüm görev değişikliklerini sıfırlamak ve varsayılan listeye dönmek istediğinize emin misiniz?')) {
+                    eraseCookie(COOKIE_NAME);
+                    alert('Ayarlar sıfırlandı. Varsayılan görev listesi yükleniyor.');
+                    // Sayfayı yeniden yüklemek yerine listeyi tekrar yükleyip render edebiliriz:
+                    loadTasksFromCookieOrDefaults(); // Varsayılanları yükleyecek
+                    renderTable(); // Tabloyu yeniden çizecek
+                    // VEYA: location.reload(); // Sayfayı tamamen yeniden yükler
+                }
+            });
+
+            // 4. YENİ: Yeni Görev Ekle butonu
+            $('#btn-add-task').on('click', function() {
+                // Şablonun bir kopyasını listeye ekle
+                GOREV_LISTESI.push( JSON.parse(JSON.stringify(YENI_GOREV_SABLONU)) );
+                saveTasksToCookie(); // YENİ: Değişikliği cookie'ye kaydet
+                renderTable(); // Tabloyu yeniden çiz
+            });
+
+            // 5. YENİ: Görev Sil butonu (Dinamik olarak eklenen butonlar için 'on' metodu)
+            $('#gorevTable').on('click', '.btn-delete', function() {
+                if (!confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+                    return;
+                }
+                const index = $(this).data('index');
+                
+                // Diziden elemanı kaldır
+                GOREV_LISTESI.splice(index, 1);
+                
+                saveTasksToCookie(); // YENİ: Değişikliği cookie'ye kaydet
+                
+                // Tabloyu yeniden çiz
+                renderTable();
+            });
+
+            // 6. YENİ: Görev açıklaması input'u değiştiğinde
+            $('#gorevTable').on('change', '.task-description', function() {
+                const index = $(this).data('index');
+                const newValue = $(this).val();
+                GOREV_LISTESI[index].gorev = newValue;
+                saveTasksToCookie(); // YENİ: Değişikliği cookie'ye kaydet
+                console.log(`Dizi güncellendi [${index}].gorev:`, newValue);
+            });
+
+            // 7. YENİ: Kullanıcı ID input'u değiştiğinde
+            $('#gorevTable').on('change', '.task-user-id', function() {
+                const index = $(this).data('index');
+                const newUserId = parseInt($(this).val(), 10) || 0;
+                
+                // İlk kullanıcının ID'sini güncelle (veya kullanıcı yoksa oluştur)
+                if (GOREV_LISTESI[index].GorevKullanicilari.length > 0) {
+                    GOREV_LISTESI[index].GorevKullanicilari[0].KullaniciID = newUserId;
+                } else {
+                    GOREV_LISTESI[index].GorevKullanicilari.push({
+                        "KullaniciID": newUserId, "KullaniciGrupID": null, "TipID": 151002
+                    });
+                }
+                saveTasksToCookie(); // YENİ: Değişikliği cookie'ye kaydet
+                console.log(`Dizi güncellendi [${index}].KullaniciID:`, newUserId);
+            });
+
+
+            // 8. Tekil görev gönderme butonu olayı
+            $('#gorevTable').on('click', '.btn-gonder', function() {
+                const index = $(this).data('index');
+                sendTask(index);
+            });
+
+            // 9. Tümünü gönder butonu olayı
+           // 9. Tümünü gönder butonu olayı (Saniyede 5 istek olacak şekilde güncellendi)
+            $('#btn-send-all').on('click', async function() {
+                const $btnAll = $(this);
+                $btnAll.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...');
+
+                // Gönderilmek üzere "Bekliyor" durumunda olan görevlerin toplam sayısını bul
+                let tasksToProcess = 0;
+                for (let i = 0; i < GOREV_LISTESI.length; i++) {
+                    const statusText = $(`#status-${i}`).text().trim();
+                    if (statusText === "Bekliyor") {
+                        tasksToProcess++;
+                    }
+                }
+
+                // Eğer gönderilecek görev yoksa, butonu hemen aktif et ve çık
+                if (tasksToProcess === 0) {
+                    console.log("Gönderilecek 'Bekliyor' durumunda görev yok.");
+                    $btnAll.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i> Tümünü Gönder');
+                    return; // Fonksiyondan çık
+                }
+
+                let tasksProcessed = 0;
+                console.log(`Toplam ${tasksToProcess} görev gönderilecek...`);
+
+                // "Bekliyor" durumundaki görevleri saniyede 5 adet (her 200ms'de 1) *başlat*
+                for (let i = 0; i < GOREV_LISTESI.length; i++) {
+                    const statusText = $(`#status-${i}`).text().trim();
+                    
+                    if (statusText === "Bekliyor") {
+                        
+                        // sendTask'i `await` OLMADAN çağır. 
+                        // Bu, isteğin başlamasını sağlar ve kod bir sonraki satıra devam eder.
+                        // İstek tamamlandığında (başarılı veya hatalı) .finally() bloğu çalışır.
+                        sendTask(i).finally(() => {
+                            tasksProcessed++;
+                            // Tüm başlatılan görevler tamamlandığında (başarılı veya hatalı) butonu tekrar aktif et
+                            if (tasksProcessed === tasksToProcess) {
+                                console.log("Tüm görevlerin gönderimi tamamlandı.");
+                                $btnAll.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i> Tümünü Gönder');
+                            }
+                        });
+                        
+                        // Bir sonraki isteği *başlatmadan* önce 200ms bekle.
+                        // 1000ms / 200ms = saniyede 5 istek gönderme hızı.
+                        await sleep(200); 
+                    }
+                }
+            });
+
+
+            // 10. URL'de ?auto=true kontrolü
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto') === 'true') {
+                console.log("Otomatik gönderme modu aktif.");
+                $('#btn-send-all').click();
+            }
+        });
+    </script>
+
+</body>
+</html>

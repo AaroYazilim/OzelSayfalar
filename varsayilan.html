@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{SayfaAdi}}</title>
+
+    <!-- Aaro Tanimlamalari -->
+    <script class="AaroOnTanimGecici">
+        var Aaro = {
+            "SayfaKodu": "PersonelPuantajRaporu",
+            "SayfaAdi": "Personel Puantaj Raporu",
+            "AnaUrl": "https://localhost:44346/",
+            "Tarih": "2025-09-22 14:26:41",
+            "IsAuthenticated": "True",
+            "UserIP": "127.0.0.1",
+            "Oturum": {
+                "KullaniciKodu": "yonetici@temel",
+                "KullaniciAdi": "A Kullanicisi",
+                "KullaniciID": "2",
+                "GrupAdi": "Temel",
+                "SirketID": "0",
+                "SubeID": "0",
+                "SirketAdi": "Tüm Şirketler",
+                "SubeAdi": "Tüm Şubeler",
+                "KullaniciGrupID": "2",
+                "KullaniciGrupKodu": "YNTC",
+                "KullaniciGrupAdi": "Yönetici Grubu",
+                "Token": ":)"
+            },
+            "QueryString": {},
+            "Form": {}
+        }
+    </script>
+
+    <!-- Gerekli CDN'ler -->
+    <!-- Google Fonts: Inter -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <!-- Font Awesome (ikonlar için) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Litepicker (Tarih Seçici) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+
+    <!-- Özel Kurumsal CSS Stilleri -->
+    <style>
+        :root {
+            --kurumsal-mavi: #0d47a1; /* Ana Renk */
+            --kurumsal-acik-mavi: #1976d2; /* Vurgu Rengi */
+            --kurumsal-gri: #f5f7fa; /* Arkaplan Rengi */
+            --kurumsal-kenarlik: #dee2e6; /* Kenarlık Rengi */
+            --kurumsal-golge: 0 4px 12px rgba(0, 0, 0, 0.08); /* Gölge */
+            --kurumsal-yazi: #212529;
+            --basari: #28a745;
+            --uyari: #ffc107;
+            --tehlike: #dc3545;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--kurumsal-gri);
+            color: var(--kurumsal-yazi);
+        }
+
+        /* Card Yapısı */
+        .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            border-radius: 0.5rem;
+            box-shadow: var(--kurumsal-golge);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden; /* Header renginin köşelerden taşmasını önler */
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background-color: #fff;
+            color: var(--kurumsal-mavi);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--kurumsal-kenarlik);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Buton Tasarımları */
+        .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--kurumsal-mavi);
+            border-color: var(--kurumsal-mavi);
+        }
+
+        .btn-primary:hover {
+            background-color: #0b3a82;
+            border-color: #0b3a82;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        /* Form Elemanları */
+        .form-control {
+            border-radius: 0.375rem;
+            border: 1px solid var(--kurumsal-kenarlik);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--kurumsal-acik-mavi);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Accordion Yapısı (Güncellenmiş) */
+        .accordion .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            box-shadow: none;
+        }
+
+        .accordion .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 0;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        
+        .accordion .card-header:hover {
+            background-color: var(--kurumsal-gri);
+            color: var(--kurumsal-mavi);
+        }
+        
+        .accordion .card-header .accordion-icon::before {
+            font-family: 'Font Awesome 5 Free';
+            content: "\f078"; /* Chevron Down */
+            font-weight: 900;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion .card-header[aria-expanded="true"] .accordion-icon::before {
+            transform: rotate(-180deg);
+        }
+        
+        .accordion .card-body {
+            border-top: 1px solid var(--kurumsal-kenarlik);
+        }
+        
+        /* Tab-Nav Yapısı */
+        .nav-tabs {
+            border-bottom: 2px solid var(--kurumsal-kenarlik);
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: -2px;
+        }
+
+        .nav-tabs .nav-link:hover {
+             border-bottom-color: var(--kurumsal-acik-mavi);
+             color: var(--kurumsal-acik-mavi);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--kurumsal-mavi);
+            background-color: transparent;
+            border-bottom: 2px solid var(--kurumsal-mavi);
+        }
+
+        /* DataTables Özelleştirmesi */
+        #personelTable_wrapper {
+            padding-top: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid my-4">
+        <!-- SAYFA BAŞLIĞI VE KULLANICI BİLGİSİ -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="sayfa-adi" class="mb-0">{{SayfaAdi}}</h2>
+            <div class="text-muted">
+                <i class="fas fa-user-circle"></i> 
+                <span id="kullanici-kodu">{{Oturum.KullaniciKodu}}</span>
+            </div>
+        </div>
+
+        <!-- FİLTRELER ACCORDION -->
+        <div class="accordion" id="filtreAccordion">
+            <div class="card">
+                <div class="card-header collapsed" id="filtreHeading" data-toggle="collapse" data-target="#collapseFiltre" aria-expanded="false" aria-controls="collapseFiltre">
+                    <span>
+                        <i class="fas fa-filter mr-2"></i> Filtreleme Seçenekleri
+                    </span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div id="collapseFiltre" class="collapse" aria-labelledby="filtreHeading" data-parent="#filtreAccordion">
+                    <div class="card-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="baslangicTarihi">Başlangıç Tarihi</label>
+                                        <input type="text" class="form-control" id="baslangicTarihi" placeholder="Tarih Aralığı Seçin">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="bitisTarihi">Bitiş Tarihi</label>
+                                        <input type="text" class="form-control" id="bitisTarihi" placeholder="Tarih Aralığı Seçin">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="departmanSec">Departman</label>
+                                        <select class="form-control" id="departmanSec">
+                                            <option>Tümü</option>
+                                            <option>Yazılım</option>
+                                            <option>Muhasebe</option>
+                                            <option>İnsan Kaynakları</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <div class="form-group w-100">
+                                        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search mr-1"></i> Raporu Getir</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- İÇERİK ALANI -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <!-- NAV-TABS -->
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="tablo-tab" data-toggle="tab" href="#tablo" role="tab" aria-controls="tablo" aria-selected="true"><i class="fas fa-table mr-2"></i>Puantaj Tablosu</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="grafik-tab" data-toggle="tab" href="#grafik" role="tab" aria-controls="grafik" aria-selected="false"><i class="fas fa-chart-bar mr-2"></i>Grafiksel Rapor</a>
+                    </li>
+                </ul>
+
+                <!-- TAB-CONTENT -->
+                <div class="tab-content" id="myTabContent">
+                    <!-- Tablo İçeriği -->
+                    <div class="tab-pane fade show active" id="tablo" role="tabpanel" aria-labelledby="tablo-tab">
+                        <div class="table-responsive pt-3">
+                             <table id="personelTable" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Personel Adı</th>
+                                        <th>Departman</th>
+                                        <th>Tarih</th>
+                                        <th>Giriş Saati</th>
+                                        <th>Çıkış Saati</th>
+                                        <th>Toplam Süre</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Ayşe Yılmaz</td>
+                                        <td>Yazılım</td>
+                                        <td>2025-09-21</td>
+                                        <td>09:01</td>
+                                        <td>18:05</td>
+                                        <td>9s 4d</td>
+                                        <td><span class="badge badge-success">Tamamlandı</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mehmet Öztürk</td>
+                                        <td>Muhasebe</td>
+                                        <td>2025-09-21</td>
+                                        <td>08:55</td>
+                                        <td>17:30</td>
+                                        <td>8s 35d</td>
+                                         <td><span class="badge badge-success">Tamamlandı</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fatma Kaya</td>
+                                        <td>Yazılım</td>
+                                        <td>2025-09-21</td>
+                                        <td>09:15</td>
+                                        <td>18:02</td>
+                                        <td>8s 47d</td>
+                                        <td><span class="badge badge-warning text-dark">Geç Geldi</span></td>
+                                    </tr>
+                                     <tr>
+                                        <td>Ali Vural</td>
+                                        <td>İnsan Kaynakları</td>
+                                        <td>2025-09-21</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td><span class="badge badge-danger">Gelmedi</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Grafik İçeriği -->
+                    <div class="tab-pane fade" id="grafik" role="tabpanel" aria-labelledby="grafik-tab">
+                        <div class="pt-3">
+                             <canvas id="myChart" style="max-height: 400px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gerekli JS Kütüphaneleri -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Litepicker (Tarih Seçici) -->
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <!-- DataTables ve Eklentileri -->
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
+
+    <script>
+        // Aaro nesnesinden bilgileri loglama ve sayfaya yazma
+        console.log("Giriş yapan kullanıcı:", Aaro.Oturum.KullaniciAdi);
+        // İsterseniz bu şekilde Aaro nesnesindeki verileri sayfanın farklı yerlerinde kullanabilirsiniz
+        // document.getElementById('sayfa-adi').innerText = Aaro.SayfaAdi;
+        // document.getElementById('kullanici-kodu').innerText = Aaro.Oturum.KullaniciKodu;
+    </script>
+
+    <script>
+
+//    fetchAllPaginatedData({
+//     bearerToken: bearerToken,
+//     endpoint: 'https://erp.aaro.com.tr/api/SatisFaturasiListe',
+//     initialParams: { // Filtreler
+//         TarihBas: '2025-01-01',
+//         // KartKodu: 'MUSTERI001'
+//     },
+//     onProgress: (progress) => {
+//         const yuzde = Math.round((progress.fetchedItems / progress.totalItems) * 100);
+//         console.log(`İlerleme: ${yuzde}% (${progress.fetchedItems}/${progress.totalItems})`);
+//     }
+// })
+// .then(tumFaturalar => {
+//     console.log("Tüm satış faturaları:", tumFaturalar);
+// })
+// .catch(hata => {
+//     console.error("Faturalar çekilirken bir hata oluştu:", hata);
+// });
+function fetchAllPaginatedData(options) {
+  return new Promise((resolve, reject) => {
+    // Varsayılan ayarlar (Aaro ERP API'sine uyumlu)
+    const defaultSettings = {
+      method: 'GET',
+      initialParams: {},
+      rateLimitDelay: 200,
+      onProgress: null,
+      pagination: {
+        pageParamName: 'Sayfa',
+        pageSizeParamName: 'SayfaSatirSayisi',
+        pageSize: 1000,
+        getDataArray: (response) => response.Model,
+        getPaginationInfo: (response) => response.SayfalandirmaBilgisi,
+        hasNextPage: (pInfo) => pInfo.SonrakiSayfaVarMi,
+        getCurrentPage: (pInfo) => pInfo.Sayfa,
+        getTotalPages: (pInfo) => pInfo.ToplamSayfaSayisi,
+        getTotalItems: (pInfo) => pInfo.ToplamSatirSayisi,
+      },
+    };
+
+    // Kullanıcı ayarlarını varsayılanlarla birleştir (iç içe objeler için deep merge)
+    const settings = $.extend(true, {}, defaultSettings, options);
+
+    if (!settings.endpoint || !settings.bearerToken) {
+      const errorMsg = "Zorunlu parametreler eksik: 'endpoint' ve 'bearerToken' sağlanmalıdır.";
+      console.error(errorMsg);
+      return reject(errorMsg);
+    }
+
+    let allData = [];
+    let totalItems = 0;
+
+    function fetchPage(pageNumber) {
+      const requestData = $.extend({}, settings.initialParams);
+      requestData[settings.pagination.pageParamName] = pageNumber;
+      requestData[settings.pagination.pageSizeParamName] = settings.pagination.pageSize;
+
+      $.ajax({
+        url: settings.endpoint,
+        method: settings.method,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + settings.bearerToken
+        },
+        data: requestData
+      })
+      .done(function(response) {
+        if (!response) {
+            return reject("API'den boş yanıt alındı.");
+        }
+
+        const dataArray = settings.pagination.getDataArray(response);
+        const paginationInfo = settings.pagination.getPaginationInfo(response);
+        
+        if (!dataArray || !paginationInfo) {
+          return reject("Yapılandırma hatası: `getDataArray` veya `getPaginationInfo` fonksiyonları geçerli veri döndürmedi. Lütfen API yanıt yapısını kontrol edin.");
+        }
+
+        allData = allData.concat(dataArray);
+        totalItems = settings.pagination.getTotalItems(paginationInfo);
+
+        if (typeof settings.onProgress === 'function') {
+          settings.onProgress({
+            currentPage: settings.pagination.getCurrentPage(paginationInfo),
+            totalPages: settings.pagination.getTotalPages(paginationInfo),
+            fetchedItems: allData.length,
+            totalItems: totalItems
+          });
+        }
+
+        if (settings.pagination.hasNextPage(paginationInfo)) {
+          setTimeout(() => {
+            fetchPage(pageNumber + 1);
+          }, settings.rateLimitDelay);
+        } else {
+          console.log(`İşlem tamamlandı. Toplam ${allData.length} kayıt çekildi.`);
+          resolve(allData);
+        }
+      })
+      .fail(function(jqXHR, textStatus, errorThrown) {
+        const errorDetails = {
+          status: jqXHR.status,
+          statusText: jqXHR.statusText,
+          responseText: jqXHR.responseText
+        };
+        console.error("API isteği başarısız oldu:", errorDetails);
+        reject(errorDetails);
+      });
+    }
+
+    fetchPage(1); // İlk sayfadan başlat
+  });
+}
+
+
+
+        $(document).ready(function() {
+            // DataTables Başlatma
+            $('#personelTable').DataTable({
+                responsive: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Turkish.json"
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copy', text: '<i class="fas fa-copy"></i> Kopyala' },
+                    { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel' },
+                    { extend: 'print', text: '<i class="fas fa-print"></i> Yazdır' }
+                ]
+            });
+
+            // Chart.js Başlatma
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar', // Grafik tipi: bar, line, pie vb.
+                data: {
+                    labels: ['Yazılım', 'Muhasebe', 'İnsan Kaynakları', 'Satış', 'Pazarlama', 'Yönetim'],
+                    datasets: [{
+                        label: 'Departmanlara Göre Ortalama Çalışma Saati',
+                        data: [8.5, 8.2, 9.1, 7.8, 8.6, 9.3],
+                        backgroundColor: [
+                            'rgba(13, 71, 161, 0.7)',
+                            'rgba(25, 118, 210, 0.7)',
+                            'rgba(66, 165, 245, 0.7)',
+                            'rgba(144, 202, 249, 0.7)',
+                            'rgba(187, 222, 251, 0.7)',
+                            'rgba(227, 242, 253, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(13, 71, 161, 1)',
+                            'rgba(25, 118, 210, 1)',
+                            'rgba(66, 165, 245, 1)',
+                            'rgba(144, 202, 249, 1)',
+                            'rgba(187, 222, 251, 1)',
+                            'rgba(227, 242, 253, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Aylık Departman Performansı'
+                        }
+                    }
+                }
+            });
+
+            // Litepicker Başlatma (Bağımsız Tarih Seçiciler)
+            new Litepicker({
+                element: document.getElementById('baslangicTarihi'),
+                singleMode: true,
+                allowRepick: true,
+                format: 'YYYY-MM-DD',
+                lang: 'tr-TR',
+                buttonText: {
+                    previousMonth: `<i class="fas fa-chevron-left"></i>`,
+                    nextMonth: `<i class="fas fa-chevron-right"></i>`,
+                    apply: 'Uygula',
+                    cancel: 'İptal',
+                }
+            });
+
+            new Litepicker({
+                element: document.getElementById('bitisTarihi'),
+                singleMode: true,
+                allowRepick: true,
+                format: 'YYYY-MM-DD',
+                lang: 'tr-TR',
+                buttonText: {
+                    previousMonth: `<i class="fas fa-chevron-left"></i>`,
+                    nextMonth: `<i class="fas fa-chevron-right"></i>`,
+                    apply: 'Uygula',
+                    cancel: 'İptal',
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

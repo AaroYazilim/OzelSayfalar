@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{SayfaAdi}}</title>
+
+    <script class="AaroOnTanimGecici">
+        var Aaro = {
+            "SayfaKodu": "SatisFaturaListesiRaporu",
+            "SayfaAdi": "Satış Fatura Listesi Raporu",
+            "AnaUrl": "https://localhost:44346/",
+            "Tarih": new Date().toISOString(),
+            "IsAuthenticated": "True",
+            "UserIP": "127.0.0.1",
+            "Oturum": {
+                "KullaniciKodu": "yonetici@temel",
+                "KullaniciAdi": "A Kullanicisi",
+                "KullaniciID": "2",
+                "GrupAdi": "Temel",
+                "SirketID": "0",
+                "SubeID": "0",
+                "SirketAdi": "Tüm Şirketler",
+                "SubeAdi": "Tüm Şubeler",
+                "KullaniciGrupID": "2",
+                "KullaniciGrupKodu": "YNTC",
+                "KullaniciGrupAdi": "Yönetici Grubu",
+                "Token": "YOUR_ACTUAL_BEARER_TOKEN" // Buraya gerçek token'ınızı eklemelisiniz.
+            },
+            "QueryString": {},
+            "Form": {}
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+
+    <style>
+        :root {
+            --kurumsal-mavi: #0d47a1;
+            --kurumsal-acik-mavi: #1976d2;
+            --kurumsal-gri: #f5f7fa;
+            --kurumsal-kenarlik: #dee2e6;
+            --kurumsal-golge: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --kurumsal-yazi: #212529;
+            --basari: #28a745;
+            --uyari: #ffc107;
+            --tehlike: #dc3545;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--kurumsal-gri);
+            color: var(--kurumsal-yazi);
+        }
+
+        .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            border-radius: 0.5rem;
+            box-shadow: var(--kurumsal-golge);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background-color: #fff;
+            color: var(--kurumsal-mavi);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--kurumsal-kenarlik);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-primary {
+            background-color: var(--kurumsal-mavi);
+            border-color: var(--kurumsal-mavi);
+        }
+        .btn-primary:hover {
+            background-color: #0b3a82;
+            border-color: #0b3a82;
+            transform: translateY(-1px);
+        }
+        .form-control {
+            border-radius: 0.375rem;
+            border: 1px solid var(--kurumsal-kenarlik);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-control:focus {
+            border-color: var(--kurumsal-acik-mavi);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        .accordion .card {
+            box-shadow: none;
+        }
+        .accordion .card-header {
+            cursor: pointer;
+        }
+        .accordion .card-header .accordion-icon::before {
+            font-family: 'Font Awesome 5 Free';
+            content: "\f078"; /* Chevron Down */
+            font-weight: 900;
+            transition: transform 0.3s ease;
+        }
+        .accordion .card-header[aria-expanded="true"] .accordion-icon::before {
+            transform: rotate(-180deg);
+        }
+        .accordion .card-body {
+            border-top: 1px solid var(--kurumsal-kenarlik);
+        }
+        .nav-tabs {
+            border-bottom: 2px solid var(--kurumsal-kenarlik);
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: -2px;
+        }
+        .nav-tabs .nav-link:hover {
+             border-bottom-color: var(--kurumsal-acik-mavi);
+             color: var(--kurumsal-acik-mavi);
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--kurumsal-mavi);
+            background-color: transparent;
+            border-bottom: 2px solid var(--kurumsal-mavi);
+        }
+        #satisFaturasiTable_wrapper {
+            padding-top: 1rem;
+        }
+        .status-indicator {
+            padding: 2rem;
+            text-align: center;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        .kpi-card {
+            background-color: #fff;
+            border: 1px solid var(--kurumsal-kenarlik);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--kurumsal-golge);
+            margin-bottom: 1rem;
+        }
+        .kpi-card .kpi-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--kurumsal-mavi);
+        }
+        .kpi-card .kpi-label {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6c757d;
+        }
+        /* Preloader Stilleri */
+        .preloader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: var(--kurumsal-mavi);
+            border-radius: 0.5rem;
+        }
+        .preloader-overlay p {
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        .text-right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid my-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="sayfa-adi" class="mb-0">{{SayfaAdi}}</h2>
+            <div class="text-muted"><i class="fas fa-user-circle"></i> <span id="kullanici-kodu"></span></div>
+        </div>
+
+        <div class="accordion" id="filtreAccordion">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center" id="filtreHeading" data-toggle="collapse" data-target="#collapseFiltre" aria-expanded="true" aria-controls="collapseFiltre">
+                    <span><i class="fas fa-filter mr-2"></i> Filtreleme Seçenekleri</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div id="collapseFiltre" class="collapse show" aria-labelledby="filtreHeading" data-parent="#filtreAccordion">
+                    <div class="card-body">
+                        <form id="raporFormu">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6"><div class="form-group"><label for="baslangicTarihi">Başlangıç Tarihi</label><input type="text" class="form-control" id="baslangicTarihi" placeholder="Başlangıç"></div></div>
+                                <div class="col-lg-3 col-md-6"><div class="form-group"><label for="bitisTarihi">Bitiş Tarihi</label><input type="text" class="form-control" id="bitisTarihi" placeholder="Bitiş"></div></div>
+                                <div class="col-lg-4 col-md-6"><div class="form-group"><label for="cariKart">Esnek Arama (Ad/Kod)</label><input type="text" class="form-control" id="cariKart" placeholder="Tüm Müşteriler"></div></div>
+                                <div class="col-lg-2 col-md-6 d-flex align-items-end"><div class="form-group w-100"><button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search mr-1"></i> Raporu Getir</button></div></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4" style="position: relative;">
+            <div id="preloader" class="preloader-overlay" style="display: none;">
+                <div class="preloader-content text-center">
+                    <i class="fas fa-spinner fa-spin fa-3x"></i>
+                    <p id="preloader-text" class="mt-3">Veriler yükleniyor...</p>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation"><a class="nav-link" id="ozet-tab" data-toggle="tab" href="#ozet" role="tab" aria-controls="ozet" aria-selected="false"><i class="fas fa-chart-pie mr-2"></i>Özet Raporlar</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link active" id="tablo-tab" data-toggle="tab" href="#tablo" role="tab" aria-controls="tablo" aria-selected="true"><i class="fas fa-table mr-2"></i>Fatura Listesi</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link" id="grafik-tab" data-toggle="tab" href="#grafik" role="tab" aria-controls="grafik" aria-selected="false"><i class="fas fa-chart-bar mr-2"></i>Satış Grafiği</a></li>
+                    <li class="nav-item" role="presentation"><a class="nav-link" id="ai-analiz-tab" data-toggle="tab" href="#ai-analiz" role="tab"><i class="fas fa-magic mr-2"></i>✨ Yapay Zeka Analizi</a></li>
+                </ul>
+
+                <div class="tab-content pt-3" id="myTabContent">
+                    <div class="tab-pane fade" id="ozet" role="tabpanel" aria-labelledby="ozet-tab">
+                        <div class="row" id="kpi-container">
+                             <div class="col-lg-3 col-md-6"><div class="kpi-card"><div id="kpi-fatura-adedi" class="kpi-value">-</div><div class="kpi-label">Toplam Fatura Adedi</div></div></div>
+                             <div class="col-lg-3 col-md-6"><div class="kpi-card"><div id="kpi-toplam-ciro" class="kpi-value">-</div><div class="kpi-label">Toplam Ciro (TRY)</div></div></div>
+                             <div class="col-lg-3 col-md-6"><div class="kpi-card"><div id="kpi-ortalama-tutar" class="kpi-value">-</div><div class="kpi-label">Ortalama Fatura Tutarı (TRY)</div></div></div>
+                             <div class="col-lg-3 col-md-6"><div class="kpi-card"><div id="kpi-musteri-sayisi" class="kpi-value">-</div><div class="kpi-label">Toplam Müşteri Sayısı</div></div></div>
+                        </div>
+                        <hr>
+                        <div class="row mt-4">
+                            <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">Döviz Bazında Ciro Dağılımı</div><div class="card-body"><canvas id="currencyChart"></canvas></div></div></div>
+                            <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">Top 10 Müşteri (Ciro Bazında)</div><div class="card-body"><canvas id="topCustomersChart"></canvas></div></div></div>
+                        </div>
+                         <div class="row mt-4">
+                            <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">Top 10 Müşteri Listesi</div><div class="card-body table-responsive"><table class="table table-sm" id="topCustomersTable"><thead><tr><th>Müşteri Adı</th><th class="text-right">Toplam Ciro (TRY)</th></tr></thead><tbody></tbody></table></div></div></div>
+                            <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header">Ürün Raporları Hakkında</div><div class="card-body"><div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i><strong>Bilgilendirme:</strong> Detaylı ürün raporları için "Ürün Satış Raporu" versiyonunu kullanabilirsiniz. Bu rapor sadece fatura özetlerini içermektedir.</div></div></div></div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show active" id="tablo" role="tabpanel" aria-labelledby="tablo-tab">
+                         <div id="raporDurum" class="status-indicator">Raporu görüntülemek için lütfen filtreleri uygulayın.</div>
+                        <div class="table-responsive pt-3" style="display: none;">
+                             <table id="satisFaturasiTable" class="table table-striped table-bordered" style="width:100%">
+                                <thead><tr><th>Tarih</th><th>Belge No</th><th>Cari Adı</th><th>Şube</th><th>Döviz Tutarı</th><th>Para Birimi</th><th>Tutar (TRY)</th><th>e-Fatura Türü</th><th>Oluşturan</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="grafik" role="tabpanel" aria-labelledby="grafik-tab">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons" id="salesChartPeriod">
+                                <label class="btn btn-outline-primary btn-sm active">
+                                    <input type="radio" name="options" value="monthly" autocomplete="off" checked> Aylık
+                                </label>
+                                <label class="btn btn-outline-primary btn-sm">
+                                    <input type="radio" name="options" value="quarterly" autocomplete="off"> Çeyrek
+                                </label>
+                                <label class="btn btn-outline-primary btn-sm">
+                                    <input type="radio" name="options" value="yearly" autocomplete="off"> Yıllık
+                                </label>
+                            </div>
+                        </div>
+                        <div class="pt-3" style="position: relative; height: 450px;">
+                            <canvas id="satisChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="ai-analiz" role="tabpanel" aria-labelledby="ai-analiz-tab">
+                        <div class="card">
+                            <div class="card-header">Yapay Zeka Prompt Ayarları</div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="systemPromptTextarea"><b>Sistem Talimatı (Prompt)</b></label>
+                                    <textarea class="form-control" id="systemPromptTextarea" rows="6"></textarea>
+                                    <small class="form-text text-muted">Yapay zekanın raporu nasıl analiz edeceğini ve hangi formatta çıktı vereceğini bu talimat ile belirleyebilirsiniz.</small>
+                                </div>
+                                <button id="geminiAnalyzeButton" class="btn btn-primary" disabled><i class="fas fa-magic mr-2"></i>Satış Verilerini Yorumla</button>
+                            </div>
+                        </div>
+                        <div id="geminiAnalysisResult" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
+
+    <script>
+    function fetchAllPaginatedData(options) {
+        return new Promise((resolve, reject) => {
+            const settings = $.extend(true, {}, {
+                method: 'GET', initialParams: {}, rateLimitDelay: 200, onProgress: null,
+                pagination: {
+                    pageParamName: 'Sayfa', pageSizeParamName: 'SayfaSatirSayisi', pageSize: 100,
+                    getDataArray: r => r.Model, getPaginationInfo: r => r.SayfalandirmaBilgisi,
+                    hasNextPage: p => p.SonrakiSayfaVarMi, getCurrentPage: p => p.Sayfa,
+                    getTotalPages: p => p.ToplamSayfaSayisi, getTotalItems: p => p.ToplamSatirSayisi,
+                },
+            }, options);
+            if (!settings.endpoint) return reject("Zorunlu parametreler eksik: 'endpoint'.");
+            let allData = [];
+            function fetchPage(pageNumber) {
+                const requestData = $.extend({}, settings.initialParams);
+                requestData[settings.pagination.pageParamName] = pageNumber;
+                requestData[settings.pagination.pageSizeParamName] = settings.pagination.pageSize;
+                $.ajax({
+                    url: settings.endpoint, method: settings.method,
+                    headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + settings.bearerToken },
+                    data: requestData
+                }).done(response => {
+                    if (!response) return reject("API'den boş yanıt alındı.");
+                    const dataArray = settings.pagination.getDataArray(response);
+                    const pInfo = settings.pagination.getPaginationInfo(response);
+                    if (!dataArray || !pInfo) return reject("API yanıt yapısı beklenenden farklı.");
+                    allData.push(...dataArray);
+                    if (typeof settings.onProgress === 'function') settings.onProgress({ fetchedItems: allData.length, totalItems: settings.pagination.getTotalItems(pInfo) });
+                    if (settings.pagination.hasNextPage(pInfo)) setTimeout(() => fetchPage(pageNumber + 1), settings.rateLimitDelay);
+                    else resolve(allData);
+                }).fail((j, t, e) => reject({ status: j.status, statusText: j.statusText, responseText: j.responseText }));
+            }
+            fetchPage(1);
+        });
+    }
+
+    $(document).ready(function() {
+        $('#kullanici-kodu').text(Aaro.Oturum.KullaniciKodu);
+        var yilBasi = new Date().getFullYear() + "-01-01";
+        $("#baslangicTarihi").val(Aaro.QueryString.TarihBas ?? yilBasi);
+        $("#bitisTarihi").val(Aaro.QueryString.TarihBit ?? new Date());
+
+        let chartInstances = {};
+        let g_tumFaturalar = []; // Tüm faturaları saklamak için global değişken
+        let g_kpiData = {}; // Yapay zeka için KPI verilerini saklamak için global değişken
+let defaultSystemPrompt = 'Tüm verileri analiz eder misin.';
+        $('#systemPromptTextarea').val(defaultSystemPrompt);
+
+defaultSystemPrompt += ' You are a senior sales analyst in Turkey. Analyze the provided sales report data. Your response MUST be in Turkish and formatted as clean HTML using Bootstrap 4 components. Do not include <html>, <head>, or <body> tags. Structure your response in a div with the class \'row\'.';
+
+        const datepickerOptions = {
+            singleMode: true, allowRepick: true, format: 'YYYY-MM-DD', lang: 'tr-TR',
+            buttonText: { previousMonth: `<i class="fas fa-chevron-left"></i>`, nextMonth: `<i class="fas fa-chevron-right"></i>`, apply: 'Uygula', cancel: 'İptal' }
+        };
+        new Litepicker({ element: document.getElementById('baslangicTarihi'), ...datepickerOptions });
+        new Litepicker({ element: document.getElementById('bitisTarihi'), ...datepickerOptions });
+        
+        $('#raporFormu').on('submit', function(e) {
+            e.preventDefault();
+            const bearerToken = "pat_y0CmRQ9Nyhk1Yhi5i0BVyB38csf9P__Qz4y2LMPR9Q8";
+            if (!bearerToken) { alert("Bearer Token bulunamadı."); return; }
+            
+            const filtreler = {
+                TarihBas: $('#baslangicTarihi').val() || undefined,
+                TarihSon: $('#bitisTarihi').val() || undefined,
+                EsnekAramaKisiti: $('#cariKart').val() || undefined
+            };
+
+            const preloader = $('#preloader');
+            const preloaderText = $('#preloader-text');
+            const raporIcerik = $('.card-body');
+
+            raporIcerik.css('opacity', '0.5');
+            preloader.show();
+            preloaderText.html('Veriler hazırlanıyor...');
+            
+            fetchAllPaginatedData({
+                bearerToken: bearerToken,
+                endpoint: 'https://erp.aaro.com.tr/api/AlisFaturasiListe',
+                initialParams: filtreler,
+                onProgress: (progress) => {
+                    const yuzde = progress.totalItems > 0 ? Math.round((progress.fetchedItems / progress.totalItems) * 100) : 0;
+                    preloaderText.html(`<i class="fas fa-spinner fa-spin"></i> Faturalar yükleniyor... ${yuzde}%`);
+                }
+            })
+            .then(tumFaturalarRaw => {
+                 // API'den gelen veriyi, tutarı 0 olan faturaları hariç tutarak filtrele
+                 const tumFaturalar = tumFaturalarRaw;
+
+                 if (tumFaturalar.length === 0) {
+                    g_tumFaturalar = []; // Veri yoksa global değişkeni temizle
+                    $('#raporDurum').text("Belirtilen kriterlere uygun fatura bulunamadı.").show();
+                    $('.table-responsive').hide();
+                    $('#geminiAnalyzeButton').prop('disabled', true);
+                    Object.values(chartInstances).forEach(chart => { if(chart) chart.destroy(); });
+                    chartInstances = {};
+                } else {
+                    g_tumFaturalar = tumFaturalar; // Filtrelenmiş veriyi global değişkende sakla
+                    $('#raporDurum').hide();
+                    $('.table-responsive').show();
+                    $('#geminiAnalyzeButton').prop('disabled', false);
+                    renderDataTable(tumFaturalar);
+                    renderSummaryReports(tumFaturalar);
+                    renderSalesChart(tumFaturalar); // Varsayılan olarak aylık gösterim
+                }
+            })
+            .catch(hata => {
+                console.error("Hata:", hata);
+                $('#raporDurum').html(`<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Rapor oluşturulurken bir hata oluştu.</span>`).show();
+            }).finally(() => {
+                preloader.hide();
+                raporIcerik.css('opacity', '1');
+            });
+        });
+
+        $('#salesChartPeriod .btn').on('click', function() {
+            const period = $(this).find('input').val();
+            if (g_tumFaturalar && g_tumFaturalar.length > 0) {
+                renderSalesChart(g_tumFaturalar, period);
+            }
+        });
+
+        $('#geminiAnalyzeButton').on('click', function() {
+            Swal.fire({
+                title: 'Onay',
+                text: "Verileriniz yapay zeka ile paylaşılacaktır, onaylıyor musunuz?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d47a1',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, Onaylıyorum',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    callGeminiApi();
+                }
+            })
+        });
+
+        const formatCurrency = (value, currency = 'TRY') => (value || 0).toLocaleString('tr-TR', { style: 'currency', currency: currency });
+        const formatNumber = (value) => (value || 0).toLocaleString('tr-TR');
+
+        async function callGeminiApi() {
+            const resultDiv = $('#geminiAnalysisResult');
+            const button = $('#geminiAnalyzeButton');
+            resultDiv.html('<div class="text-center p-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Analiz oluşturuluyor...</p></div>');
+            button.prop('disabled', true);
+            
+            const systemPrompt = $('#systemPromptTextarea').val();
+            
+            const { baslangic, bitis } = { baslangic: $('#baslangicTarihi').val() || 'Belirtilmemiş', bitis: $('#bitisTarihi').val() || 'Belirtilmemiş' };
+            const userQuery = `Analyze the sales performance from ${baslangic} to ${bitis}.
+            - Total Revenue: ${formatCurrency(g_kpiData.toplamCiro)}
+            - Total Invoices: ${formatNumber(g_kpiData.faturaAdedi)}
+            - Number of Unique Customers: ${formatNumber(g_kpiData.musteriSayisi)}
+            - Average Invoice Value: ${formatCurrency(g_kpiData.ortalamaTutar)}
+            - Top 5 Customers by Revenue: ${g_kpiData.topMusteriler.map(c => `${c[0]}: ${formatCurrency(c[1])}`).join(', ')}`;
+
+            try {
+                const apiKey = "{{GeminiApiKey}}"; 
+                if (!apiKey) {
+                    resultDiv.html('<div class="alert alert-warning">Lütfen script içerisindeki `apiKey` değişkenine Google AI Studio API anahtarınızı ekleyin.</div>');
+                    return;
+                }
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) { throw new Error(`API call failed with status: ${response.status}`); }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    resultDiv.html(candidate.content.parts[0].text);
+                } else {
+                    resultDiv.html('<div class="alert alert-danger">Analiz sonucu alınamadı. Lütfen tekrar deneyin.</div>');
+                }
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                resultDiv.html('<div class="alert alert-danger">Analiz sırasında bir hata oluştu. Lütfen konsolu kontrol edin.</div>');
+            } finally {
+                button.prop('disabled', false);
+            }
+        }
+
+        function renderDataTable(data) {
+            if ($.fn.DataTable.isDataTable('#satisFaturasiTable')) $('#satisFaturasiTable').DataTable().destroy();
+            let tableBody = $('#satisFaturasiTable tbody');
+            tableBody.empty();
+            data.forEach(f => {
+                const dovizTutar = f.DovizKodu === 'TRY' ? f.Tutar : f.TutarDvz;
+                tableBody.append(`<tr><td>${new Date(f.Tarih).toLocaleDateString('tr-TR')}</td><td>${f.BelgeNo||'-'}</td><td>${f.KartAdi||'-'}</td><td>${f.SubeAdi||'-'}</td><td class="text-right">${formatCurrency(dovizTutar, f.DovizKodu)}</td><td>${f.DovizKodu||'-'}</td><td class="text-right">${formatCurrency(f.Tutar, 'TRY')}</td><td>${f.eFaturaTurAdi||'Kağıt'}</td><td>${f.OlsAdi||'-'}</td></tr>`);
+            });
+            $('#satisFaturasiTable').DataTable({
+                responsive: true,
+                language: { url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Turkish.json" },
+                dom: 'Bfrtip',
+                buttons: ['copy', 'excel', 'print'].map(type => ({ extend: type, className: 'btn-sm' })),
+                destroy: true
+            });
+        }
+
+        function createOrUpdateChart(canvasId, type, data, options) {
+            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+            chartInstances[canvasId] = new Chart(document.getElementById(canvasId).getContext('2d'), { type, data, options });
+        }
+
+        function renderSummaryReports(data) {
+            const totalCiroTRY = data.reduce((sum, f) => sum + f.Tutar, 0);
+            const uniqueCustomers = new Set(data.map(f => f.KartID)).size;
+            
+            $('#kpi-fatura-adedi').text(formatNumber(data.length));
+            $('#kpi-toplam-ciro').text(formatCurrency(totalCiroTRY));
+            $('#kpi-ortalama-tutar').text(data.length > 0 ? formatCurrency(totalCiroTRY / data.length) : '-');
+            $('#kpi-musteri-sayisi').text(formatNumber(uniqueCustomers));
+
+            const currencyData = data.reduce((acc, f) => {
+                const amount = f.DovizKodu === 'TRY' ? f.Tutar : f.TutarDvz;
+                acc[f.DovizKodu] = (acc[f.DovizKodu] || 0) + amount;
+                return acc;
+            }, {});
+            createOrUpdateChart('currencyChart', 'doughnut', {
+                labels: Object.keys(currencyData),
+                datasets: [{ data: Object.values(currencyData), backgroundColor: ['#0d47a1', '#1976d2', '#64b5f6', '#bbdefb', '#e3f2fd'] }]
+            }, { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } });
+            
+            const customerData = data.reduce((acc, f) => {
+                acc[f.KartAdi] = (acc[f.KartAdi] || 0) + f.Tutar;
+                return acc;
+            }, {});
+            const topCustomers = Object.entries(customerData).sort(([,a],[,b]) => b-a).slice(0, 10);
+            createOrUpdateChart('topCustomersChart', 'bar', {
+                labels: topCustomers.map(c => c[0]),
+                datasets: [{ label: 'Toplam Ciro (TRY)', data: topCustomers.map(c => c[1]), backgroundColor: '#1976d2' }]
+            }, { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } });
+
+            const topCustomersTable = $('#topCustomersTable tbody');
+            topCustomersTable.empty();
+            topCustomers.forEach(([name, total]) => topCustomersTable.append(`<tr><td>${name}</td><td class="text-right">${formatCurrency(total)}</td></tr>`));
+
+            // KPI verilerini yapay zeka için global değişkene ata
+            g_kpiData = {
+                toplamCiro: totalCiroTRY,
+                faturaAdedi: data.length,
+                musteriSayisi: uniqueCustomers,
+                ortalamaTutar: data.length > 0 ? totalCiroTRY / data.length : 0,
+                topMusteriler: topCustomers.slice(0, 5) // Prompt için ilk 5'i al
+            };
+        }
+        
+        function renderSalesChart(data, period = 'monthly') {
+            let chartTitle = '';
+            const getGroupKey = (fatura) => {
+                const date = new Date(fatura.Tarih);
+                switch (period) {
+                    case 'quarterly':
+                        chartTitle = 'Çeyreklik Toplam Satış (TRY)';
+                        const quarter = Math.floor(date.getMonth() / 3) + 1;
+                        return `${date.getFullYear()}-Q${quarter}`;
+                    case 'yearly':
+                        chartTitle = 'Yıllık Toplam Satış (TRY)';
+                        return date.getFullYear().toString();
+                    case 'monthly':
+                    default:
+                        chartTitle = 'Aylık Toplam Satış (TRY)';
+                        return fatura.Tarih.substring(0, 7); // YYYY-MM
+                }
+            };
+
+            const monthlyData = data.reduce((acc, f) => {
+                const key = getGroupKey(f);
+                acc[key] = (acc[key] || 0) + f.Tutar;
+                return acc;
+            }, {});
+
+            const sortedLabels = Object.keys(monthlyData).sort();
+            
+            const chartDataConfig = {
+                labels: sortedLabels,
+                datasets: [{
+                    label: 'Toplam Satış (TRY)',
+                    data: sortedLabels.map(l => monthlyData[l]),
+                    backgroundColor: 'rgba(13, 71, 161, 0.7)'
+                }]
+            };
+
+            const chartOptionsConfig = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return formatCurrency(value, 'TRY'); }
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: chartTitle
+                    }
+                }
+            };
+
+            createOrUpdateChart('satisChart', 'bar', chartDataConfig, chartOptionsConfig);
+        }
+    });
+    </script>
+</body>
+</html>

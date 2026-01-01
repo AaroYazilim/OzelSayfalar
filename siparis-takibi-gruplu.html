@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Sipariş Hareketleri Raporu</title>
+
+    <!-- Aaro Tanimlamalari - Sayfa bilgileri -->
+    <script class="AaroOnTanimGecici">
+        var Aaro = {
+            "SayfaKodu": "AlinanSiparisRaporu",
+            "SayfaAdi": "Alınan Sipariş Hareketleri Raporu",
+            "AnaUrl": "https://localhost:44346/",
+            "Tarih": "2025-10-01 10:00:00",
+            "IsAuthenticated": "True",
+            "UserIP": "127.0.0.1",
+            "Oturum": {
+                "KullaniciKodu": "yonetici@temel",
+                "KullaniciAdi": "A Kullanicisi",
+                "KullaniciID": "2",
+                "GrupAdi": "Temel",
+                "SirketID": "0",
+                "SubeID": "0",
+                "SirketAdi": "Tüm Şirketler",
+                "SubeAdi": "Tüm Şubeler",
+                "KullaniciGrupID": "2",
+                "KullaniciGrupKodu": "YNTC",
+                "KullaniciGrupAdi": "Yönetici Grubu",
+                "Token": ":)"
+            },
+            "QueryString": {},
+            "Form": {}
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    
+    <!-- Bootstrap 4.5.2 CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Bootstrap Select CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css"/>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.bootstrap4.min.css">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Litepicker Datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+
+    <!-- Özel Kurumsal CSS -->
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --background-bg: #f8f9fa;
+            --border-color: #e9ecef;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-bg);
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        /* Tablo Başlıkları */
+        #dataTable thead th {
+            background-color: var(--secondary-color);
+            color: #fff;
+            font-weight: 500;
+            border-color: var(--secondary-color);
+        }
+        
+        #dataTable tbody tr:hover {
+            background-color: #f1f8ff;
+            cursor: pointer;
+        }
+        
+        /* Footer Toplam Satırı */
+        #dataTable tfoot th {
+            background-color: #e8f4f8;
+            color: var(--primary-color);
+            font-weight: 700;
+            border-top: 2px solid var(--accent-color);
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .accordion .card-header {
+            cursor: pointer;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .text-right { text-align: right !important; }
+        .font-weight-bold { font-weight: 700 !important; }
+
+        /* Dropdown okunu özelleştirme */
+        .action-dropdown .dropdown-toggle::after {
+            display: none; /* Standart oku gizle, kendi ikonumuzu kullanacağız */
+        }
+        .action-dropdown .btn-sm {
+            padding: 0.2rem 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loadingOverlay" class="d-none">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="sr-only">Yükleniyor...</span>
+        </div>
+        <h5 class="mt-3 text-primary" id="loadingText">İşleniyor...</h5>
+    </div>
+
+    <div class="container-fluid py-4">
+        <!-- Başlık Alanı -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-0 text-dark font-weight-bold">Sipariş Hareketleri Raporu</h3>
+                <small class="text-muted">Dinamik Gruplama ve Pivot Analizi</small>
+            </div>
+            <div class="text-right">
+                <span class="badge badge-light p-2 border">
+                    <i class="fas fa-user mr-1"></i> <span id="kullanici-kodu">--</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Filtre Kartı -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center" data-toggle="collapse" data-target="#collapseFiltre" style="cursor:pointer">
+                <span><i class="fas fa-filter mr-2"></i> Rapor Parametreleri</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div id="collapseFiltre" class="collapse show">
+                <div class="card-body">
+                    <form id="raporForm">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-muted small">Başlangıç Tarihi</label>
+                                    <input type="text" class="form-control" id="tarihBas" name="TarihBas">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-muted small">Bitiş Tarihi</label>
+                                    <input type="text" class="form-control" id="tarihBit" name="TarihBit">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-muted small">Serbest Arama</label>
+                                    <input type="text" class="form-control" name="EsnekAramaKisiti" placeholder="Belge no, açıklama vb...">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-muted small">Cari Kodu</label>
+                                    <input type="text" class="form-control" name="CariKodu" placeholder="Örn: 120.01...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-primary small"><i class="fas fa-layer-group mr-1"></i> Gruplama Alanları</label>
+                                    <select multiple class="form-control selectpicker" id="gruplamaSec" 
+                                            data-actions-box="true" 
+                                            data-live-search="true" 
+                                            data-style="btn-outline-secondary"
+                                            data-selected-text-format="count > 3" 
+                                            title="Listeyi olduğu gibi görmek için boş bırakın...">
+                                        <option value="Tarih">Tarih</option>
+                                        <option value="BelgeNo">Belge No</option>
+                                        <option value="CariAdi" data-subtext="Müşteri İsmi">Cari Adı</option>
+                                        <option value="KartAdi" data-subtext="Ürün İsmi">Stok/Kart Adı</option>
+                                        <option value="KartKodu">Stok/Kart Kodu</option>
+                                        <option value="BirimKodu">Birim</option>
+                                    </select>
+                                    <small class="form-text text-muted">Hiçbir seçim yapmazsanız detaylı liste gelir. Seçim yaparsanız özet tablo oluşur.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end pb-3">
+                                <button type="button" class="btn btn-primary btn-block shadow-sm" id="btnRaporla">
+                                    <i class="fas fa-sync-alt mr-2"></i> Raporu Getir / Yenile
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="errorArea" class="alert alert-danger d-none mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tablo Kartı -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0" id="tableTitle">Rapor Sonucu</h5>
+                    <span id="rowCountBadge" class="badge badge-info">0 Kayıt</span>
+                </div>
+                <div class="table-responsive" id="tableContainer">
+                    <!-- Tablo dinamik olarak buraya eklenecek -->
+                    <table id="dataTable" class="table table-striped table-bordered w-100">
+                        <thead></thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detay Modal (Sadece Gruplama Yapıldığında Kullanılır) -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title"><i class="fas fa-list-alt mr-2"></i> Grup Detayları</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 mb-3">
+                        <strong>Grup:</strong> <span id="modalGroupTitle"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="modalDetailTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"></th> <!-- Dropdown için başlık -->
+                                    <th>Tarih</th>
+                                    <th>Belge No</th>
+                                    <th>Cari Adı</th>
+                                    <th>Stok Adı</th>
+                                    <th class="text-right">Miktar</th>
+                                    <th class="text-right">Sevk</th>
+                                    <th class="text-right">Kalan</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scriptler -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Eklentiler -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/i18n/defaults-tr_TR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <!-- Yazdırma butonu için eksik olan kütüphane eklendi -->
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+
+    <script>
+        // --- Sabitler ve Yapılandırma ---
+        const API_URL = 'https://erp.aaro.com.tr/api/AlinanSiparisHareketleri';
+        const AUTH_TOKEN = Aaro.Oturum.Token;
+        
+        // Ham veriyi burada saklayacağız
+        let GLOBAL_RAW_DATA = [];
+        let dataTableInstance = null;
+
+        // DataTables Türkçe Dil Dosyası (CORS hatasını önlemek için gömülü olarak eklendi)
+        const DT_LANG_TR = {
+            "sDecimal":        ",",
+            "sEmptyTable":     "Tabloda herhangi bir veri mevcut değil",
+            "sInfo":           "_TOTAL_ kayıttan _START_ - _END_ arasındaki kayıtlar gösteriliyor",
+            "sInfoEmpty":      "Kayıt yok",
+            "sInfoFiltered":   "(_MAX_ kayıt içerisinden bulunan)",
+            "sInfoPostFix":    "",
+            "sInfoThousands":  ".",
+            "sLengthMenu":     "Sayfada _MENU_ kayıt göster",
+            "sLoadingRecords": "Yükleniyor...",
+            "sProcessing":     "İşleniyor...",
+            "sSearch":         "Ara:",
+            "sZeroRecords":    "Eşleşen kayıt bulunamadı",
+            "oPaginate": {
+                "sFirst":    "İlk",
+                "sLast":     "Son",
+                "sNext":     "Sonraki",
+                "sPrevious": "Önceki"
+            },
+            "oAria": {
+                "sSortAscending":  ": artan sütun sıralamasını aktifleştir",
+                "sSortDescending": ": azalan sütun sıralamasını aktifleştir"
+            },
+            "select": {
+                "rows": {
+                    "_": "%d kayıt seçildi",
+                    "0": "",
+                    "1": "1 kayıt seçildi"
+                }
+            }
+        };
+
+        // Sayı Formatlama (TR Standardı)
+        const formatNumber = (num) => {
+            if (num === null || num === undefined) return '';
+            try {
+                return parseFloat(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } catch (e) {
+                return num;
+            }
+        };
+
+        // Tarih Formatlama (YYYY-MM-DD)
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            try {
+                return dateStr.split('T')[0];
+            } catch (e) {
+                return dateStr;
+            }
+        };
+
+        // Dropdown HTML Üretici Yardımcı Fonksiyonu
+        // isGrouped: true ise grup satırı için (toplamlar ve liste), false ise tekil satır için üretir.
+        const createActionDropdown = (row, isGrouped = false) => {
+            let belgeNoParam = '';
+            let kalanMiktarParam = 0;
+            let kartIdParam = '';
+            let cariIdParam = '';
+
+            if (isGrouped && row.details && Array.isArray(row.details)) {
+                // GRUPLAMA MODU:
+                // 1. Belge Noları birleştir (virgülle ayır, unique yap)
+                const uniqueBelgeNos = [...new Set(row.details.map(d => d.BelgeNo).filter(x => x))];
+                belgeNoParam = uniqueBelgeNos.join(',');
+                
+                // 2. Miktar: Zaten toplanmış olan grup toplamını kullan
+                kalanMiktarParam = row.SevkiKalanMiktar || 0;
+                
+                // 3. Stok/Cari: Grubun ilk elemanını al (varsa)
+                if (row.details.length > 0) {
+                    kartIdParam = row.details[0].KartID || '';
+                    cariIdParam = row.details[0].CariID || '';
+                }
+            } else {
+                // TEKİL MOD:
+                belgeNoParam = row.BelgeNo || '';
+                kalanMiktarParam = row.SevkiKalanMiktar || 0;
+                kartIdParam = row.KartID || '';
+                cariIdParam = row.CariID || '';
+            }
+
+            const linkBelge = `https://erp.aaro.com.tr/AlinanSiparisListe/Liste?EsnekAramaKisiti=${belgeNoParam}`;
+            const linkIsEmri = `https://erp.aaro.com.tr/UrIsEmri/Kalem?Miktar=${kalanMiktarParam}`;
+            const linkStok = `https://erp.aaro.com.tr/Stok/Kalem?id=${kartIdParam}`;
+            const linkCari = `https://erp.aaro.com.tr/Cari/Kalem?id=${cariIdParam}`;
+
+            return `
+                <div class="dropdown action-dropdown text-center">
+                    <button class="btn btn-sm btn-light border-0 dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-chevron-circle-down text-secondary" style="font-size:1.1em;"></i>
+                    </button>
+                    <div class="dropdown-menu shadow">
+                        <a class="dropdown-item small" href="${linkBelge}" target="_blank">
+                            <i class="fas fa-external-link-alt mr-2 text-primary"></i> Belgeye Git
+                        </a>
+                        <a class="dropdown-item small" href="${linkIsEmri}" target="_blank">
+                            <i class="fas fa-tools mr-2 text-success"></i> İş Emri Ver
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item small" href="${linkStok}" target="_blank">
+                            <i class="fas fa-box mr-2 text-info"></i> Stoğa Git
+                        </a>
+                        <a class="dropdown-item small" href="${linkCari}" target="_blank">
+                            <i class="fas fa-user-tie mr-2 text-warning"></i> Cariye Git
+                        </a>
+                    </div>
+                </div>
+            `;
+        };
+
+        // --- Sayfa Yükleme ---
+        $(document).ready(function() {
+            try {
+                // Kullanıcı Bilgisi
+                $('#kullanici-kodu').text(Aaro.Oturum.KullaniciAdi || 'Misafir');
+
+                // Tarih Seçicileri Başlat
+                setupDatePickers();
+
+                // Selectpicker Başlat
+                if($.fn.selectpicker) {
+                    $('#gruplamaSec').selectpicker();
+                }
+
+                // Event Listener: Rapor Butonu
+                $('#btnRaporla').on('click', function() {
+                    fetchAndProcessData();
+                });
+
+                // Event Listener: Gruplama Değişirse (Eğer veri varsa yeniden çiz)
+                $('#gruplamaSec').on('changed.bs.select', function() {
+                    if (GLOBAL_RAW_DATA.length > 0) {
+                        processAndRender(GLOBAL_RAW_DATA);
+                    }
+                });
+
+                // İlk açılışta verileri çek
+                fetchAndProcessData();
+            } catch (error) {
+                console.error("Başlangıç Hatası:", error);
+                showError("Sayfa yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.");
+            }
+        });
+
+        // --- Yardımcı Fonksiyonlar ---
+        function setupDatePickers() {
+            try {
+                const today = new Date();
+                const lastMonth = new Date();
+                lastMonth.setDate(today.getDate() - 60);
+
+                const toDateStr = (d) => d.toISOString().split('T')[0];
+
+                $('#tarihBas').val(toDateStr(lastMonth));
+                $('#tarihBit').val(toDateStr(today));
+
+                const opts = {
+                    singleMode: true,
+                    format: 'YYYY-MM-DD',
+                    lang: 'tr-TR',
+                    allowRepick: true
+                };
+                
+                if (window.Litepicker) {
+                    new Litepicker({ element: document.getElementById('tarihBas'), ...opts });
+                    new Litepicker({ element: document.getElementById('tarihBit'), ...opts });
+                }
+            } catch (e) {
+                console.warn("Datepicker yüklenemedi:", e);
+            }
+        }
+
+        function showLoading(msg) {
+            $('#loadingText').text(msg);
+            $('#loadingOverlay').removeClass('d-none');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').addClass('d-none');
+        }
+
+        function showError(msg) {
+            $('#errorArea').text(msg).removeClass('d-none');
+            hideLoading();
+        }
+
+        // --- Veri Çekme (API) ---
+        async function fetchAndProcessData() {
+            showLoading("Veriler sunucudan çekiliyor...");
+            $('#errorArea').addClass('d-none');
+
+            // Form verilerini topla
+            const formData = {};
+            $('#raporForm').serializeArray().forEach(item => {
+                if(item.value) formData[item.name] = item.value;
+            });
+
+            // Sayfalama döngüsü (Tüm veriyi çeker)
+            let allData = [];
+            let page = 1;
+            const pageSize = 1000;
+            let hasNext = true;
+
+            try {
+                if (!AUTH_TOKEN || AUTH_TOKEN === ':)' ) throw new Error("API Token geçersiz.");
+
+                while (hasNext) {
+                    // API İsteği
+                    const response = await $.ajax({
+                        url: API_URL,
+                        method: 'GET',
+                        headers: { 'Authorization': 'Bearer ' + AUTH_TOKEN },
+                        data: { ...formData, Sayfa: page, SayfaSatirSayisi: pageSize }
+                    });
+
+                    if (response && response.Model) {
+                        allData = allData.concat(response.Model);
+                        // Sonraki sayfa kontrolü
+                        hasNext = response.SayfalandirmaBilgisi && response.SayfalandirmaBilgisi.SonrakiSayfaVarMi;
+                        page++;
+                        $('#loadingText').text(`Veriler çekiliyor... (${allData.length} kayıt)`);
+                    } else {
+                        hasNext = false;
+                    }
+                }
+
+                GLOBAL_RAW_DATA = allData;
+                $('#rowCountBadge').text(allData.length + " Kayıt");
+                processAndRender(GLOBAL_RAW_DATA);
+
+            } catch (error) {
+                console.error(error);
+                showError("Veri çekme hatası: " + (error.statusText || error.message || "Bilinmeyen hata"));
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- Veri İşleme ve Tablo Çizme (MANTIK MERKEZİ) ---
+        function processAndRender(data) {
+            try {
+                // Mevcut tabloyu GÜVENLİ temizle (Hard Reset)
+                if ($.fn.DataTable.isDataTable('#dataTable')) {
+                    $('#dataTable').DataTable().destroy();
+                }
+                
+                // DOM elementini tamamen kaldırıp yeniden ekliyoruz.
+                $('#dataTable').remove();
+                $('#tableContainer').append('<table id="dataTable" class="table table-striped table-bordered w-100"><thead></thead><tbody></tbody><tfoot></tfoot></table>');
+                
+                dataTableInstance = null;
+
+                const selectedGroups = $('#gruplamaSec').val() || [];
+                
+                // KARAR NOKTASI: Gruplama var mı yok mu?
+                if (selectedGroups.length === 0) {
+                    renderFlatList(data);
+                } else {
+                    renderGroupedList(data, selectedGroups);
+                }
+            } catch (e) {
+                console.error("Render Hatası:", e);
+                showError("Tablo oluşturulurken bir hata oluştu.");
+            }
+        }
+
+        // --- MOD 1: Düz Liste (Detay Görünüm) ---
+        function renderFlatList(data) {
+            $('#tableTitle').text("Sipariş Listesi (Detay)");
+
+            const columns = [
+                // YENİ EKLENEN AKSİYON SÜTUNU
+                { 
+                    title: "", 
+                    data: null, 
+                    orderable: false, 
+                    width: "40px",
+                    className: "text-center p-1",
+                    render: function (data, type, row) {
+                        return createActionDropdown(row, false);
+                    }
+                },
+                { title: "Tarih", data: "Tarih", defaultContent: "", render: (d) => formatDate(d) },
+                { title: "Belge No", data: "BelgeNo", defaultContent: "" },
+                { title: "Cari Adı", data: "CariAdi", defaultContent: "" },
+                { title: "Stok/Kart Adı", data: "KartAdi", defaultContent: "" },
+                { title: "Birim", data: "BirimKodu", defaultContent: "" },
+                { title: "Sipariş Miktarı", data: "Miktar", defaultContent: "0", className: "text-right", render: formatNumber },
+                { title: "Sevk Edilen", data: "SevkEdilenMiktar", defaultContent: "0", className: "text-right", render: formatNumber },
+                { title: "Kalan", data: "SevkiKalanMiktar", defaultContent: "0", className: "text-right font-weight-bold", render: formatNumber }
+            ];
+
+            initDataTable(data, columns, false); // Detay modunda modal açılmaz
+        }
+
+        // --- MOD 2: Gruplanmış Liste (Özet Görünüm) ---
+        function renderGroupedList(data, groupKeys) {
+            $('#tableTitle').text("Özet Rapor (Detay için satıra tıklayın)");
+
+            // 1. Veriyi Grupla
+            const groupedMap = {};
+            // Stok adı sütunu seçili mi kontrolü
+            const isStockSelected = groupKeys.includes('KartAdi');
+
+            data.forEach(item => {
+                // Grup anahtarı oluştur (Örn: "2023-01-01 | Ahmet A.Ş.")
+                const keyParts = groupKeys.map(k => {
+                    if (k === 'Tarih') return formatDate(item[k]);
+                    return item[k] || '(Boş)';
+                });
+                const uniqueKey = keyParts.join('|||');
+
+                if (!groupedMap[uniqueKey]) {
+                    groupedMap[uniqueKey] = {
+                        keys: keyParts, // Ekrana basmak için sakla
+                        count: 0,
+                        Miktar: 0,
+                        SevkEdilenMiktar: 0,
+                        SevkiKalanMiktar: 0,
+                        details: [], // Detayları sakla (modal için)
+                        uniqueStocks: new Set() // Grup içindeki benzersiz stoklar
+                    };
+                }
+
+                // Toplama işlemi
+                groupedMap[uniqueKey].count++;
+                groupedMap[uniqueKey].Miktar += (item.Miktar || 0);
+                groupedMap[uniqueKey].SevkEdilenMiktar += (item.SevkEdilenMiktar || 0);
+                groupedMap[uniqueKey].SevkiKalanMiktar += (item.SevkiKalanMiktar || 0);
+                groupedMap[uniqueKey].details.push(item);
+
+                // Stok özetini biriktir (Eğer stok adı seçili değilse)
+                if (!isStockSelected && item.KartAdi) {
+                    groupedMap[uniqueKey].uniqueStocks.add(item.KartAdi);
+                }
+            });
+
+            // 2. Tablo Verisine Dönüştür
+            const tableData = Object.values(groupedMap).map(g => {
+                const row = {};
+                // Grup sütunlarını doldur
+                groupKeys.forEach((keyName, index) => {
+                    row[keyName] = g.keys[index];
+                });
+                // Toplam sütunlarını doldur
+                row.Count = g.count;
+                row.Miktar = g.Miktar;
+                row.SevkEdilenMiktar = g.SevkEdilenMiktar;
+                row.SevkiKalanMiktar = g.SevkiKalanMiktar;
+                row.details = g.details; // Gizli veri
+                
+                // Stok Özeti Oluştur
+                if (!isStockSelected) {
+                    const stocks = Array.from(g.uniqueStocks).filter(x => x).slice(0, 3); // İlk 3 stok
+                    let summary = stocks.join(', ');
+                    if (g.uniqueStocks.size > 3) {
+                        summary += ' (ve ' + (g.uniqueStocks.size - 3) + ' diğer...)';
+                    }
+                    row.StockSummary = summary;
+                }
+
+                return row;
+            });
+
+            // 3. Sütun Tanımlarını Oluştur
+            const columns = [];
+
+            // YENİ EKLENEN: GRUPLU TABLO İÇİN İŞLEM SÜTUNU
+            columns.push({ 
+                title: "", 
+                data: null, 
+                orderable: false, 
+                width: "40px",
+                className: "text-center p-1",
+                render: function (data, type, row) {
+                    return createActionDropdown(row, true); // true = gruplu mod
+                }
+            });
+            
+            // Seçilen grup alanları için sütunlar
+            groupKeys.forEach(k => {
+                // DOM element kontrolü
+                let $opt = $("#gruplamaSec option[value='"+k+"']");
+                let label = $opt.length ? $opt.text() : k;
+                columns.push({ title: label, data: k, defaultContent: "" });
+            });
+
+            // EĞER STOK ADI GRUPLAMADA YOKSA, ÖZET SÜTUNUNU EKLE
+            if (!isStockSelected) {
+                columns.push({ 
+                    title: "İçerik (Stok Özeti)", 
+                    data: "StockSummary", 
+                    defaultContent: "-",
+                    orderable: false,
+                    className: "text-muted small font-italic"
+                });
+            }
+
+            // Sabit Toplam Sütunları
+            columns.push({ title: "Kayıt Adeti", data: "Count", defaultContent: "0", className: "text-center font-weight-bold" });
+            columns.push({ title: "Top. Sipariş", data: "Miktar", defaultContent: "0", className: "text-right", render: formatNumber });
+            columns.push({ title: "Top. Sevk", data: "SevkEdilenMiktar", defaultContent: "0", className: "text-right", render: formatNumber });
+            columns.push({ title: "Top. Kalan", data: "SevkiKalanMiktar", defaultContent: "0", className: "text-right font-weight-bold", render: formatNumber });
+            
+            // Gizli detay sütunu
+            columns.push({ title: "Detay", data: "details", visible: false, defaultContent: [] });
+
+            initDataTable(tableData, columns, true);
+        }
+
+        // --- DataTables Başlatıcı ---
+        function initDataTable(dataSet, colDefs, isGrouped) {
+            let headerHtml = '';
+            colDefs.forEach(col => {
+                headerHtml += `<th>${col.title}</th>`;
+            });
+            $('#dataTable thead').html('<tr>' + headerHtml + '</tr>');
+
+            // Footer (Dip Toplam) için boş hücreler
+            let footerHtml = '';
+            colDefs.forEach(col => {
+                footerHtml += `<th></th>`;
+            });
+            $('#dataTable tfoot').html('<tr>' + footerHtml + '</tr>');
+
+            dataTableInstance = $('#dataTable').DataTable({
+                data: dataSet,
+                columns: colDefs,
+                dom: 'Bfrtip',
+                destroy: true, // Ek güvenlik
+                buttons: [
+                    { 
+                        extend: 'excel', 
+                        text: '<i class="fas fa-file-excel"></i> Excel İndir', 
+                        className: 'btn btn-success btn-sm',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    { 
+                        extend: 'print', 
+                        text: '<i class="fas fa-print"></i> Yazdır', 
+                        className: 'btn btn-secondary btn-sm',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ],
+                // Gömülü dil dosyasını kullan (CORS düzeltmesi)
+                language: DT_LANG_TR,
+                pageLength: 25,
+                // Dip Toplam Hesaplama (Generic)
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+ 
+                    // Güvenli sayısal dönüşüm
+                    var intVal = function (i) {
+                        if (typeof i === 'number') return i;
+                        if (typeof i === 'string') {
+                            // JSON number formatını varsayarak (nokta ondalık) parse et
+                            return parseFloat(i) || 0;
+                        }
+                        return 0;
+                    };
+
+                    // Her sütun için döngü (Gizli sütunlar hariç)
+                    api.columns().every(function () {
+                        // Sütun indexi
+                        var idx = this.index();
+                        
+                        // colDefs array sınır kontrolü
+                        if (!colDefs || !colDefs[idx]) return;
+
+                        const key = colDefs[idx].data;
+
+                        // Sadece toplanabilir alanları hesapla
+                        if (['Miktar', 'SevkEdilenMiktar', 'SevkiKalanMiktar', 'Count'].includes(key)) {
+                            // Sadece bu sayfadaki (visible) verileri topla
+                            var total = api
+                                .column(idx, { page: 'current' })
+                                .data()
+                                .reduce(function (a, b) {
+                                    return intVal(a) + intVal(b);
+                                }, 0);
+
+                            // Formatla ve yaz
+                            if (key === 'Count') {
+                                $(this.footer()).html(total);
+                            } else {
+                                $(this.footer()).html(formatNumber(total));
+                            }
+                        } else if (idx === 1) { // 0. index artık Dropdown olduğu için 1. sütuna yazıyoruz
+                            $(this.footer()).html('TOPLAM');
+                        }
+                    });
+                }
+            });
+
+            // Tıklama Olayı (Sadece Gruplu ise)
+            if (isGrouped) {
+                // Not: Tıklamayı sadece "dropdown olmayan" alanlara sınırlıyoruz
+                $('#dataTable tbody').off('click').on('click', 'tr', function (e) {
+                    // Eğer tıklanan yer bir buton veya dropdown içindeyse modal açma
+                    if ($(e.target).closest('.dropdown, button, a').length) return;
+
+                    var data = dataTableInstance.row(this).data();
+                    if(data) openDetailModal(data);
+                });
+            }
+        }
+
+        // --- Detay Modal ---
+        function openDetailModal(rowData) {
+            try {
+                // Başlığı ayarla (Gruplama anahtarlarını birleştir)
+                const groupValues = [];
+                const excludeKeys = ['Count', 'Miktar', 'SevkEdilenMiktar', 'SevkiKalanMiktar', 'details', 'StockSummary'];
+                
+                Object.keys(rowData).forEach(key => {
+                    if (!excludeKeys.includes(key) && isNaN(key)) { 
+                         groupValues.push(rowData[key]);
+                    }
+                });
+                
+                $('#modalGroupTitle').text(groupValues.join(' - '));
+                
+                // Tabloyu doldur
+                const tbody = $('#modalDetailTable tbody');
+                tbody.empty();
+                
+                if (rowData.details && Array.isArray(rowData.details)) {
+                    rowData.details.forEach(item => {
+                        // Yardımcı fonksiyondan dropdown HTML'ini al (Tekil mod = false)
+                        const dropdownHtml = createActionDropdown(item, false);
+
+                        const tr = `
+                            <tr>
+                                <td>${dropdownHtml}</td>
+                                <td>${formatDate(item.Tarih)}</td>
+                                <td>${item.BelgeNo || '-'}</td>
+                                <td>${item.CariAdi || '-'}</td>
+                                <td>${item.KartAdi || '-'}</td>
+                                <td class="text-right">${formatNumber(item.Miktar)}</td>
+                                <td class="text-right">${formatNumber(item.SevkEdilenMiktar)}</td>
+                                <td class="text-right font-weight-bold">${formatNumber(item.SevkiKalanMiktar)}</td>
+                            </tr>
+                        `;
+                        tbody.append(tr);
+                    });
+                }
+                
+                $('#detailModal').modal('show');
+            } catch (e) {
+                console.error("Modal açma hatası:", e);
+            }
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aaro Entegrasyon Paneli (jQuery/Bootstrap)</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-bottom: 300px; /* Log paneli için boşluk */
+        }
+        .card {
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .table-container {
+            height: 500px;
+            overflow-y: auto;
+        }
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f9fafb;
+            z-index: 1;
+        }
+        /* Log Paneli Stilleri */
+        #log-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 250px;
+            background-color: #111827;
+            color: #d1d5db;
+            border-top: 1px solid #374151;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+        }
+        #log-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .log-item {
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            cursor: pointer;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .log-item:hover {
+            background-color: #1f2937;
+        }
+        .badge-method {
+            min-width: 60px;
+            text-align: center;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+        /* JSON Pre Style */
+        pre.json-view {
+            background-color: #1e293b;
+            color: #a5b4fc;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-height: 300px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-4">
+    
+    <!-- Üst Panel: Ayarlar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title mb-4 text-primary d-flex align-items-center gap-2">
+                <i class="fas fa-network-wired"></i> Aaro ERP Entegrasyon Paneli v3
+            </h4>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-secondary">Bearer Token</label>
+                    <input type="password" id="apiToken" class="form-control" placeholder="Token yapıştırın...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-secondary">Belge No Başlangıç</label>
+                    <input type="text" id="belgeNoBas" class="form-control" value="TYA2025000000185">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold text-secondary">Belge No Bitiş</label>
+                    <input type="text" id="belgeNoBit" class="form-control" value="TYA2025000001040">
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                <div class="d-flex gap-2 align-items-center">
+                    <button id="btnFetch" class="btn btn-primary px-4">
+                        <i class="fas fa-search me-1"></i> <span id="btnFetchText">Verileri Getir</span>
+                    </button>
+                    <span id="recordCountBadge" class="badge bg-info text-dark d-none ms-2 fs-6">0 Kayıt</span>
+                </div>
+
+                <div>
+                    <button id="btnBulkDelete" class="btn btn-danger px-4" disabled>
+                        <i class="fas fa-trash-alt me-1"></i> Hepsini Sil (Toplu)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="progressContainer" class="progress mt-3 d-none" style="height: 20px;">
+                <div id="deleteProgressBar" class="progress-bar bg-danger progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+                    %0
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orta Panel: Tablo -->
+    <div class="card">
+        <div class="card-header bg-light fw-bold text-secondary">
+            <i class="fas fa-list me-1"></i> Fatura Listesi
+        </div>
+        <div class="card-body p-0 table-container">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Belge No</th>
+                        <th>Cari Adı</th>
+                        <th>Tarih</th>
+                        <th class="text-end">Tutar</th>
+                        <th class="text-center">Dekont ID</th>
+                        <th class="text-center" style="width: 100px;">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center p-5 text-muted">
+                            Veriler yükleniyor veya henüz sorgulama yapılmadı...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Alt Panel: Loglar -->
+<div id="log-panel">
+    <div class="d-flex justify-content-between align-items-center p-2 bg-secondary border-bottom border-dark">
+        <div class="d-flex align-items-center gap-2 text-white">
+            <i class="fas fa-terminal text-success"></i>
+            <strong>Canlı İşlem Logları</strong>
+            <span class="text-light opacity-50 ms-2 small">(Detay için satıra tıklayın)</span>
+        </div>
+        <button id="btnClearLogs" class="btn btn-sm btn-outline-light py-0" style="font-size: 10px;">Temizle</button>
+    </div>
+    <div id="log-content">
+        <!-- Log items will be appended here -->
+        <div class="text-muted fst-italic p-2">Henüz işlem yok...</div>
+    </div>
+</div>
+
+<!-- Log Detay Modalı -->
+<div class="modal fade" id="logModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header" id="logModalHeader">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <span id="modalMethodBadge" class="badge bg-secondary">METHOD</span>
+                    <span>İşlem Detayı</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light">
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <div class="border rounded p-2 bg-white">
+                            <label class="small fw-bold text-secondary d-block">İSTEK URL</label>
+                            <code id="modalUrl" class="text-primary text-break">...</code>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="border rounded p-2 bg-white">
+                            <label class="small fw-bold text-secondary d-block">DURUM / MESAJ</label>
+                            <span id="modalStatus" class="fw-bold">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small fw-bold text-secondary mb-1">
+                        <i class="fas fa-arrow-circle-up text-warning"></i> Giden Veri (Payload)
+                    </label>
+                    <pre id="modalRequestData" class="json-view">null</pre>
+                </div>
+
+                <div>
+                    <label class="small fw-bold text-secondary mb-1">
+                        <i class="fas fa-arrow-circle-down text-success"></i> Gelen Cevap (Response)
+                    </label>
+                    <pre id="modalResponseData" class="json-view">null</pre>
+                </div>
+
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts: jQuery & Bootstrap Bundle -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    
+    // --- GLOBAL DEĞİŞKENLER ---
+    var globalData = [];
+    var globalLogs = [];
+    var isProcessing = false;
+    var logModal = new bootstrap.Modal(document.getElementById('logModal'));
+
+    // --- LOGLAMA SİSTEMİ ---
+    function addLog(type, method, url, status, message, requestData = null, responseData = null) {
+        var logId = Date.now() + Math.random();
+        var timestamp = new Date().toLocaleTimeString();
+        
+        var logObj = {
+            id: logId,
+            timestamp: timestamp,
+            type: type, // info, success, error, request
+            method: method,
+            url: url,
+            status: status,
+            message: message,
+            requestData: requestData,
+            responseData: responseData
+        };
+        
+        globalLogs.push(logObj);
+
+        // UI Rengi Belirleme
+        var badgeClass = 'bg-secondary';
+        var textClass = 'text-light';
+        if(type === 'request') { badgeClass = 'bg-warning text-dark'; textClass = 'text-warning'; }
+        else if(type === 'success') { badgeClass = 'bg-success'; textClass = 'text-success'; }
+        else if(type === 'error') { badgeClass = 'bg-danger'; textClass = 'text-danger'; }
+        else if(type === 'info') { badgeClass = 'bg-info text-dark'; textClass = 'text-info'; }
+
+        var statusColor = (status >= 200 && status < 300) ? 'text-success' : (status === 'PENDING' ? 'text-warning' : 'text-danger');
+
+        var html = `
+            <div class="log-item" data-id="${logId}">
+                <span class="text-secondary" style="min-width: 60px;">${timestamp}</span>
+                <span class="badge ${badgeClass} badge-method">${method || type.toUpperCase()}</span>
+                <div class="flex-grow-1 text-truncate">
+                    <span class="${textClass} me-2">[${status}]</span>
+                    <span class="text-light">${message}</span>
+                </div>
+                <i class="fas fa-info-circle text-secondary"></i>
+            </div>
+        `;
+        
+        // İlk log eklendiğinde "Henüz işlem yok" yazısını kaldır
+        if(globalLogs.length === 1) $('#log-content').html('');
+        
+        $('#log-content').prepend(html); // En yeni en üste
+    }
+
+    // Log Tıklama Olayı (Modal Açma)
+    $(document).on('click', '.log-item', function() {
+        var id = $(this).data('id');
+        var log = globalLogs.find(x => x.id == id);
+        
+        if(log) {
+            $('#modalMethodBadge').text(log.method || log.type);
+            
+            // Header rengini type'a göre değiştir
+            var headerClass = 'modal-header ';
+            if(log.type === 'error') headerClass += 'bg-danger text-white';
+            else if(log.type === 'success') headerClass += 'bg-success text-white';
+            else headerClass += 'bg-light text-dark';
+            $('#logModalHeader').attr('class', headerClass);
+
+            $('#modalUrl').text(log.url || '-');
+            $('#modalStatus').text((log.status || '-') + ' ' + log.message);
+            
+            $('#modalRequestData').text(log.requestData ? JSON.stringify(log.requestData, null, 2) : 'Veri yok');
+            $('#modalResponseData').text(log.responseData ? JSON.stringify(log.responseData, null, 2) : 'Cevap yok');
+            
+            logModal.show();
+        }
+    });
+
+    $('#btnClearLogs').click(function() {
+        globalLogs = [];
+        $('#log-content').html('<div class="text-muted fst-italic p-2">Loglar temizlendi...</div>');
+    });
+
+    // --- YARDIMCI FONKSİYONLAR ---
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function updateTable() {
+        var tbody = $('#dataTableBody');
+        tbody.empty();
+
+        if (globalData.length === 0) {
+            tbody.html('<tr><td colspan="7" class="text-center p-5 text-muted">Kayıt bulunamadı.</td></tr>');
+            $('#recordCountBadge').addClass('d-none');
+            $('#btnBulkDelete').prop('disabled', true);
+            return;
+        }
+
+        $('#recordCountBadge').text(globalData.length + ' Kayıt Listelendi').removeClass('d-none');
+        $('#btnBulkDelete').prop('disabled', false);
+
+        $.each(globalData, function(index, row) {
+            var tr = `
+                <tr>
+                    <td class="text-muted">${index + 1}</td>
+                    <td class="fw-bold text-dark">${row.BelgeNo}</td>
+                    <td class="text-secondary text-truncate" style="max-width: 200px;" title="${row.KartAdi}">${row.KartAdi}</td>
+                    <td>${row.Tarih ? row.Tarih.split('T')[0] : '-'}</td>
+                    <td class="text-end fw-bold text-primary">${parseFloat(row.Tutar).toLocaleString('tr-TR', {minimumFractionDigits: 2})} ${row.DovizSembol}</td>
+                    <td class="text-center font-monospace small text-muted">${row.DekontID}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger btn-delete-single" data-id="${row.DekontID}" data-no="${row.BelgeNo}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(tr);
+        });
+    }
+
+    // --- API İŞLEMLERİ ---
+
+    // 1. Verileri Getir
+    $('#btnFetch').click(async function() {
+        var token = $('#apiToken').val().trim();
+        if(!token) { alert("Lütfen Bearer Token giriniz."); return; }
+
+        var baseUrl = "https://erp.aaro.com.tr/api/SatisFaturasiListe";
+        var params = {
+            SayfaSatirSayisi: "100",
+            BelgeNoBas: $('#belgeNoBas').val(),
+            BelgeNoBit: $('#belgeNoBit').val()
+        };
+
+        isProcessing = true;
+        $(this).prop('disabled', true);
+        $('#btnFetchText').text('Yükleniyor...');
+        $('#dataTableBody').html('<tr><td colspan="7" class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2">Veriler çekiliyor...</div></td></tr>');
+        
+        globalData = [];
+        globalLogs = [];
+        $('#log-content').html(''); // Logları temizle
+        addLog('info', 'SYSTEM', '-', '-', 'Veri çekme işlemi başlatıldı.');
+
+        try {
+            let currentPage = 1;
+            let totalPages = 1;
+
+            do {
+                params.Sayfa = currentPage;
+                var url = baseUrl + '?' + $.param(params);
+                
+                addLog('request', 'GET', url, 'PENDING', `Sayfa ${currentPage} isteniyor...`);
+
+                // jQuery AJAX Promise
+                var response = await $.ajax({
+                    url: url,
+                    method: 'GET',
+                    headers: { "Authorization": "Bearer " + token },
+                    dataType: 'json'
+                });
+
+                addLog('success', 'GET', url, 200, `Sayfa ${currentPage} alındı. (${response.Model ? response.Model.length : 0} kayıt)`, null, response);
+
+                if(response.Model && Array.isArray(response.Model)) {
+                    globalData = globalData.concat(response.Model);
+                }
+
+                if (currentPage === 1 && response.SayfalandirmaBilgisi) {
+                    totalPages = response.SayfalandirmaBilgisi.ToplamSayfaSayisi || 1;
+                    addLog('info', 'SYSTEM', '-', '-', `Toplam ${totalPages} sayfa tespit edildi.`);
+                }
+
+                currentPage++;
+
+            } while (currentPage <= totalPages);
+
+            updateTable();
+            addLog('success', 'SYSTEM', '-', 'FINISH', `İşlem tamamlandı. Toplam ${globalData.length} kayıt.`);
+
+        } catch (error) {
+            var errText = error.responseText || error.statusText;
+            var errJson = null;
+            try { errJson = JSON.parse(error.responseText); } catch(e){}
+            
+            addLog('error', 'GET', baseUrl, error.status || 500, 'Veri çekilemedi.', null, errJson || {raw: errText});
+            $('#dataTableBody').html(`<tr><td colspan="7" class="text-center text-danger p-5">Hata oluştu: ${errText}</td></tr>`);
+            alert("Veri çekilirken hata oluştu. Logları kontrol ediniz.");
+        } finally {
+            isProcessing = false;
+            $('#btnFetch').prop('disabled', false);
+            $('#btnFetchText').text('Verileri Getir');
+        }
+    });
+
+    // 2. Tekli Silme
+    async function deleteItemApi(dekontId, isBulk = false) {
+        var token = $('#apiToken').val().trim();
+        var url = "https://erp.aaro.com.tr/api/Dekont/Baslik?KayitTipi=-1";
+        var body = { "Baslik": { "DekontID": dekontId } };
+        
+        if(!isBulk) addLog('request', 'POST', url, 'PENDING', `Silme isteği: ID ${dekontId}`, body);
+
+        try {
+            var response = await $.ajax({
+                url: url,
+                method: 'POST',
+                headers: { 
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify(body),
+                dataType: 'json'
+            });
+
+            if(!isBulk) {
+                addLog('success', 'POST', url, 200, `Kayıt ${dekontId} silindi.`, body, response);
+                // UI'dan sil
+                globalData = globalData.filter(x => x.DekontID !== dekontId);
+                updateTable();
+                alert("Kayıt başarıyla silindi.");
+            }
+            return true;
+
+        } catch (error) {
+            var errJson = null;
+            try { errJson = JSON.parse(error.responseText); } catch(e){}
+            
+            addLog('error', 'POST', url, error.status, `Silinemedi: ID ${dekontId}`, body, errJson || {raw: error.responseText});
+            if(!isBulk) alert("Silme işlemi başarısız oldu.");
+            return false;
+        }
+    }
+
+    $(document).on('click', '.btn-delete-single', function() {
+        if(isProcessing) return;
+        var id = $(this).data('id');
+        var no = $(this).data('no');
+        if(confirm(`Belge No: ${no} (ID: ${id}) silinsin mi?`)) {
+            deleteItemApi(id, false);
+        }
+    });
+
+    // 3. Toplu Silme
+    $('#btnBulkDelete').click(async function() {
+        var token = $('#apiToken').val().trim();
+        if(!token) { alert("Lütfen Token giriniz."); return; }
+        if(globalData.length === 0) return;
+
+        if(!confirm(`${globalData.length} adet kaydı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`)) return;
+
+        isProcessing = true;
+        $('#btnFetch, #btnBulkDelete').prop('disabled', true);
+        $('#progressContainer').removeClass('d-none');
+        $('#deleteProgressBar').css('width', '0%').text('%0');
+
+        addLog('info', 'BULK', '-', '-', `Toplu silme başlatıldı. Hedef: ${globalData.length} kayıt.`);
+
+        var itemsToDelete = [...globalData];
+        var remainingItems = [...globalData];
+        var processedCount = 0;
+
+        for (const item of itemsToDelete) {
+            // Rate limit delay (200ms)
+            await delay(200);
+
+            var success = await deleteItemApi(item.DekontID, true);
+
+            processedCount++;
+            var percent = Math.round((processedCount / itemsToDelete.length) * 100);
+            $('#deleteProgressBar').css('width', percent + '%').text('%' + percent);
+
+            if(success) {
+                // Başarılıysa listeden çıkar
+                remainingItems = remainingItems.filter(x => x.DekontID !== item.DekontID);
+                addLog('success', 'BULK', '-', 200, `${processedCount}/${itemsToDelete.length} - ID: ${item.DekontID} silindi.`);
+            }
+        }
+
+        globalData = remainingItems;
+        updateTable();
+        
+        addLog('info', 'BULK', '-', 'FINISH', 'Toplu silme işlemi tamamlandı.');
+        alert("Toplu silme işlemi tamamlandı.");
+
+        isProcessing = false;
+        $('#btnFetch, #btnBulkDelete').prop('disabled', false);
+        $('#progressContainer').addClass('d-none');
+    });
+
+});
+</script>
+
+</body>
+</html>

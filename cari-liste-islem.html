@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demirbaş Yönetim Paneli</title>
+
+    <!-- Gerekli CDN'ler -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+
+    <!-- Özel Kurumsal CSS Stilleri -->
+    <style>
+        :root {
+            --kurumsal-mavi: #0d47a1;
+            --kurumsal-acik-mavi: #1976d2;
+            --kurumsal-gri: #f5f7fa;
+            --kurumsal-kenarlik: #dee2e6;
+            --kurumsal-golge: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --kurumsal-yazi: #212529;
+            --tehlike: #dc3545;
+            --basari: #28a745;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--kurumsal-gri);
+            color: var(--kurumsal-yazi);
+        }
+
+        .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            border-radius: 0.5rem;
+            box-shadow: var(--kurumsal-golge);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: #fff;
+            color: var(--kurumsal-mavi);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--kurumsal-kenarlik);
+        }
+        
+        .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--kurumsal-mavi);
+            border-color: var(--kurumsal-mavi);
+        }
+
+        .btn-primary:hover {
+            background-color: #0b3a82;
+            border-color: #0b3a82;
+        }
+        
+        .nav-tabs {
+            border-bottom: 2px solid var(--kurumsal-kenarlik);
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: -2px;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--kurumsal-mavi);
+            background-color: transparent;
+            border-bottom: 2px solid var(--kurumsal-mavi);
+        }
+        
+        /* Logs Kısmı Stilleri */
+        #logs-content {
+            background-color: #282c34;
+            color: #abb2bf;
+            font-family: 'Courier New', Courier, monospace;
+            border-radius: 5px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            border-bottom: 1px solid #444;
+            padding: 10px 15px;
+        }
+        .log-header {
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            padding: 5px 0 5px 25px; /* İkon için boşluk */
+        }
+        .log-toggle-icon {
+            position: absolute;
+            left: 5px;
+            top: 10px;
+            transition: transform 0.2s ease-in-out;
+        }
+        .log-toggle-icon.expanded {
+            transform: rotate(90deg);
+        }
+        .log-details {
+            padding: 10px 0 0 25px;
+            margin-top: 5px;
+            border-left: 1px solid #555;
+        }
+        .log-method-GET { color: #61afef; }
+        .log-method-DELETE { color: #e06c75; }
+        .log-method-PUT { color: #e5c07b; }
+        .log-status-success { color: #98c379; }
+        .log-status-error { color: #e06c75; }
+        .log-body {
+            background-color: #21252b;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .response-toggle {
+            color: #61afef;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Ayarlar Accordion ikonu için stil */
+        #apiSettingsAccordion .card-header[aria-expanded="true"] .accordion-icon {
+            transform: rotate(-180deg);
+        }
+
+        #apiSettingsAccordion .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+
+        /* Düzenleme Modalı için stiller */
+        .swal2-html-container {
+            text-align: left !important;
+        }
+        .swal2-html-container .form-row {
+            margin-bottom: 1rem;
+        }
+        .swal2-html-container .field-row {
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            position: relative;
+        }
+        .swal2-html-container .remove-field-btn {
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            transform: translateY(-50%);
+            z-index: 10;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            line-height: 28px;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- YENİ EKLENDİ: Alan adlarını (key) önermek için datalist -->
+    <datalist id="api-keys-list"></datalist>
+
+    <div class="container-fluid my-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="sayfa-adi" class="mb-0">Demirbaş Yönetim Paneli</h2>
+            <div id="loading-spinner" class="spinner-border text-primary" role="status" style="display: none;">
+                <span class="sr-only">Yükleniyor...</span>
+            </div>
+        </div>
+        
+        <!-- API Ayarları Accordion -->
+        <div class="accordion mb-4" id="apiSettingsAccordion">
+            <div class="card">
+                <div class="card-header" id="apiSettingsHeading" data-toggle="collapse" data-target="#collapseApiSettings" aria-expanded="false" aria-controls="collapseApiSettings" style="cursor: pointer;">
+                    <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-cog mr-2"></i>API Ayarları</span>
+                        <i class="fas fa-chevron-down accordion-icon"></i>
+                    </h5>
+                </div>
+                <div id="collapseApiSettings" class="collapse" aria-labelledby="apiSettingsHeading" data-parent="#apiSettingsAccordion">
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <label for="apiUrlInput">API Endpoint URL</label>
+                                <input type="text" class="form-control" id="apiUrlInput">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="bearerTokenInput">Bearer Token</label>
+                                <input type="text" class="form-control" id="bearerTokenInput">
+                            </div>
+                        </div>
+                        <button id="saveApiSettingsBtn" class="btn btn-primary"><i class="fas fa-sync-alt mr-2"></i>Ayarları Uygula ve Yenile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="liste-tab" data-toggle="tab" href="#liste" role="tab" aria-controls="liste" aria-selected="true"><i class="fas fa-list mr-2"></i>Demirbaş Listesi</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="logs-tab" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-selected="false"><i class="fas fa-terminal mr-2"></i>Logs</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="liste" role="tabpanel" aria-labelledby="liste-tab">
+                        <div class="d-flex justify-content-end my-3">
+                             <button id="bulk-edit-btn" class="btn btn-primary mr-2"><i class="fas fa-edit mr-2"></i>Toplu Düzenle</button>
+                             <button id="bulk-delete-btn" class="btn btn-danger"><i class="fas fa-exclamation-triangle mr-2"></i>Toplu Sil</button>
+                        </div>
+                        <div class="table-responsive">
+                             <table id="demirbasTable" class="table table-striped table-bordered" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Stok Kodu</th>
+                                        <th>Stok Adı</th>
+                                        <th>Şube</th>
+                                        <th>Oluşturma Tarihi</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Veriler buraya dinamik olarak eklenecek -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                        <div id="logs-content" class="p-2 mt-3">
+                           <!-- Log kayıtları buraya eklenecek -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gerekli JS Kütüphaneleri -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap4.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            let bearerToken = '';
+            let apiUrl = 'https://erp.aaro.com.tr/api/Cari';
+            // <!-- YENİ: Temel URL (parametreler olmadan) için yeni bir değişken -->
+            let apiBaseUrl = apiUrl.split('?')[0];
+            let demirbasDataTable;
+            let logCounter = 0;
+            let allDemirbasData = []; // Çekilen tüm verileri saklamak için
+            let apiDataKeys = []; // API'den gelen anahtarları (key) saklamak için
+
+            // Ayar giriş alanlarını varsayılan değerlerle doldur
+            $('#apiUrlInput').val(apiUrl);
+            $('#bearerTokenInput').val(bearerToken);
+
+            $('#saveApiSettingsBtn').on('click', function() {
+                const newApiUrl = $('#apiUrlInput').val().trim();
+                const newBearerToken = $('#bearerTokenInput').val().trim();
+                if (!newApiUrl || !newBearerToken) {
+                    Swal.fire('Eksik Bilgi', 'Lütfen API URL ve Token alanlarını doldurun.', 'warning');
+                    return;
+                }
+                // <!-- GÜNCELLENDİ: Her iki URL değişkenini de ayarla -->
+                apiUrl = newApiUrl;
+                apiBaseUrl = apiUrl.split('?')[0]; // ? varsa ayır, yoksa aynı kalır
+                bearerToken = newBearerToken;
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Ayarlar güncellendi!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                $('#collapseApiSettings').collapse('hide');
+                fetchDemirbas();
+            });
+            
+            function addLog(type, method, url, status, requestData, responseData) {
+                logCounter++;
+                const logDetailsId = `log-details-${logCounter}`;
+                const responseBodyId = `response-body-${logCounter}`;
+                const timestamp = new Date().toLocaleString('tr-TR');
+                const statusClass = (status >= 200 && status < 300) ? 'log-status-success' : 'log-status-error';
+                const methodClass = `log-method-${method.toUpperCase()}`;
+                let responseBodyHtml = '';
+                if (responseData) {
+                    try {
+                        const formattedJson = JSON.stringify(JSON.parse(responseData), null, 2);
+                        responseBodyHtml = `
+                            <div>
+                                <strong>Yanıt Gövdesi:</strong>
+                                <a class="response-toggle" data-toggle="collapse" href="#${responseBodyId}">[ Göster/Gizle ]</a>
+                                <div class="collapse" id="${responseBodyId}">
+                                    <div class="log-body">${formattedJson}</div>
+                                </div>
+                            </div>`;
+                    } catch (e) {
+                         responseBodyHtml = `
+                            <div>
+                                <strong>Yanıt Gövdesi:</strong>
+                                <a class="response-toggle" data-toggle="collapse" href="#${responseBodyId}">[ Göster/Gizle ]</a>
+                                <div class="collapse" id="${responseBodyId}">
+                                    <div class="log-body">${responseData}</div>
+                                </div>
+                            </div>`;
+                    }
+                }
+
+                let requestBodyHtml = '';
+                if (requestData) {
+                    try {
+                        requestBodyHtml = `<div><strong>Talep Gövdesi:</strong><div class="log-body">${JSON.stringify(requestData, null, 2)}</div></div>`;
+                    } catch (e) {
+                         requestBodyHtml = `<div><strong>Talep Gövdesi (String):</strong><div class="log-body">${requestData}</div></div>`;
+                    }
+                }
+
+                const logHtml = `
+                    <div class="log-entry">
+                        <div class="log-header" data-toggle="collapse" data-target="#${logDetailsId}">
+                            <i class="fas fa-chevron-right log-toggle-icon"></i>
+                            <span class="${methodClass}">${method.toUpperCase()}</span> ${url}
+                            <span class="float-right">${timestamp} | Durum: <span class="${statusClass}">${status}</span></span>
+                        </div>
+                        <div id="${logDetailsId}" class="collapse log-details">
+                            ${requestBodyHtml}
+                            ${responseBodyHtml}
+                        </div>
+                    </div>
+                `;
+                $('#logs-content').prepend(logHtml);
+            }
+            
+            $('#logs-content').on('show.bs.collapse', '.log-details', function () {
+                $(`[data-target="#${this.id}"] .log-toggle-icon`).addClass('expanded');
+            }).on('hide.bs.collapse', '.log-details', function () {
+                 $(`[data-target="#${this.id}"] .log-toggle-icon`).removeClass('expanded');
+            });
+
+            function initializeDataTable(data) {
+                if (demirbasDataTable) {
+                    demirbasDataTable.destroy();
+                }
+                $('#demirbasTable tbody').empty();
+                data.forEach(item => {
+                    $('#demirbasTable tbody').append(`
+                        <tr id="row-${item.CariID}">
+                            <td>${item.CariKodu || '-'}</td>
+                            <td>${item.CariAdi || '-'}</td>
+                            <td>${item.SubeAdi || '-'}</td>
+                            <td>${new Date(item.OlsTar).toLocaleDateString('tr-TR')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary edit-btn" data-id="${item.CariID}" data-stok-kodu="${item.CariKodu || ''}">
+                                    <i class="fas fa-edit"></i> Düzenle
+                                </button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="${item.CariID}">
+                                    <i class="fas fa-trash-alt"></i> Sil
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+                demirbasDataTable = $('#demirbasTable').DataTable({
+                    responsive: true,
+                    language: { url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Turkish.json" }
+                });
+            }
+
+            // Sayfalı verileri çeken ana fonksiyon
+            function fetchAllPaginatedData(options) {
+                return new Promise((resolve, reject) => {
+                    const settings = $.extend(true, {}, {
+                        method: 'GET',
+                        initialParams: {},
+                        rateLimitDelay: 200,
+                        onProgress: null,
+                        pagination: {
+                            pageParamName: 'Sayfa',
+                            pageSizeParamName: 'SayfaSatirSayisi',
+                            pageSize: 100,
+                            getDataArray: (response) => response.Model,
+                            getPaginationInfo: (response) => response.SayfalandirmaBilgisi,
+                            hasNextPage: (pInfo) => pInfo.SonrakiSayfaVarMi,
+                            getTotalItems: (pInfo) => pInfo.ToplamSatirSayisi,
+                        },
+                    }, options);
+
+                    let allData = [];
+                    let totalItems = 0;
+
+                    function fetchPage(pageNumber) {
+                        const requestData = $.extend({}, settings.initialParams);
+                        requestData[settings.pagination.pageParamName] = pageNumber;
+                        requestData[settings.pagination.pageSizeParamName] = settings.pagination.pageSize;
+                        
+                        // <!-- GÜNCELLENDİ: GET isteği 'apiUrl' (filtreli) kullanır -->
+                        $.ajax({
+                            url: settings.endpoint, // settings.endpoint = apiUrl
+                            method: settings.method,
+                            headers: { 'Authorization': 'Bearer ' + settings.bearerToken },
+                            data: requestData
+                        })
+                        .done(function(response, status, xhr) {
+                            if (!response || !response.Model || !response.SayfalandirmaBilgisi) {
+                                return reject("API yanıtı beklenen formatta değil.");
+                            }
+                            const dataArray = settings.pagination.getDataArray(response);
+                            const paginationInfo = settings.pagination.getPaginationInfo(response);
+                            
+                            addLog('API Call (Page ' + pageNumber + ')', 'GET', settings.endpoint, xhr.status, requestData, JSON.stringify(response));
+                            
+                            allData = allData.concat(dataArray);
+                            totalItems = settings.pagination.getTotalItems(paginationInfo);
+
+                            if (typeof settings.onProgress === 'function') {
+                                settings.onProgress({ fetchedItems: allData.length, totalItems: totalItems });
+                            }
+
+                            if (settings.pagination.hasNextPage(paginationInfo)) {
+                                setTimeout(() => fetchPage(pageNumber + 1), settings.rateLimitDelay);
+                            } else {
+                                resolve(allData);
+                            }
+                        })
+                        .fail(function(jqXHR) {
+                            addLog('API Call (Page ' + pageNumber + ')', 'GET', settings.endpoint, jqXHR.status, requestData, jqXHR.responseText);
+                            reject(jqXHR);
+                        });
+                    }
+                    fetchPage(1);
+                });
+            }
+
+            // Gelen verideki tüm benzersiz anahtarları çıkaran fonksiyon
+            function extractApiKeys(data) {
+                const keySet = new Set();
+                data.forEach(item => {
+                    Object.keys(item).forEach(key => {
+                        keySet.add(key);
+                    });
+                });
+                return Array.from(keySet).sort(); // Alfabetik sırala
+            }
+
+            // Anahtarları #api-keys-list datalist'ine dolduran fonksiyon
+            function populateApiKeysDatalist() {
+                const datalist = $('#api-keys-list');
+                datalist.empty(); // Öncekileri temizle
+                apiDataKeys.forEach(key => {
+                    datalist.append(`<option value="${key}"></option>`);
+                });
+            }
+
+            // fetchDemirbas fonksiyonu, yeni sayfalı çekme fonksiyonunu kullanır
+            function fetchDemirbas() {
+                $('#loading-spinner').show();
+                Swal.fire({
+                    title: 'Veriler Yükleniyor...',
+                    html: 'Lütfen bekleyin...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                // <!-- GÜNCELLENDİ: 'apiUrl' (filtreli) ile veri çekilir -->
+                fetchAllPaginatedData({
+                    bearerToken: bearerToken,
+                    endpoint: apiUrl, 
+                    onProgress: (progress) => {
+                        Swal.update({
+                            html: `Toplam <b>${progress.totalItems}</b> kayıttan <b>${progress.fetchedItems}</b> tanesi yüklendi...`
+                        });
+                    }
+                })
+                .then(tumDemirbaslar => {
+                    Swal.close();
+                    allDemirbasData = tumDemirbaslar; // Gelen tüm veriyi global değişkene ata
+                    
+                    apiDataKeys = extractApiKeys(allDemirbasData);
+                    populateApiKeysDatalist();
+
+                    initializeDataTable(allDemirbasData);
+                })
+                .catch(hata => {
+                    Swal.fire('Hata!', 'Veriler çekilirken bir sorun oluştu. API ayarlarını ve bağlantınızı kontrol edin.', 'error');
+                    allDemirbasData = []; // Hata durumunda listeyi temizle
+                    apiDataKeys = []; // Anahtarları temizle
+                    populateApiKeysDatalist(); // Datalist'i temizle
+                    initializeDataTable([]);
+                })
+                .finally(() => {
+                    $('#loading-spinner').hide();
+                });
+            }
+
+            function deleteItem(id) {
+                // <!-- GÜNCELLENDİ: 'apiUrl' yerine 'apiBaseUrl' (temiz) kullanılır -->
+                const deleteUrl = `${apiBaseUrl}/${id}`;
+                $('#loading-spinner').show();
+                
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${bearerToken}` }
+                }).done(function(response, status, xhr) { 
+                    addLog('API Call', 'DELETE', deleteUrl, xhr.status, null, JSON.stringify(response));
+                    if (response.Sonuc) {
+                        $(`#row-${id}`).fadeOut(500, function() {
+                            demirbasDataTable.row($(this)).remove().draw();
+                        });
+                         Swal.fire('Başarılı!', 'Demirbaş başarıyla silindi.', 'success');
+                         // Ana veriden de sil
+                         allDemirbasData = allDemirbasData.filter(item => item.CariID !== id);
+                         // Veri silindiğinde anahtar listesini güncelle (belki bazı anahtarlar artık yoktur)
+                         apiDataKeys = extractApiKeys(allDemirbasData);
+                         populateApiKeysDatalist();
+                    } else {
+                        Swal.fire('Hata!', response.Mesajlar.Mesaj || 'Silme işlemi başarısız.', 'error');
+                    }
+                }).fail(function(xhr) { 
+                    addLog('API Call', 'DELETE', deleteUrl, xhr.status, null, xhr.responseText);
+                    Swal.fire('Hata!', 'Silme işlemi sırasında bir sorun oluştu.', 'error');
+                }).always(function() { 
+                    $('#loading-spinner').hide();
+                });
+            }
+
+            $('#demirbasTable').on('click', '.delete-btn', function() {
+                const itemId = $(this).data('id');
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: "Bu demirbaşı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Evet, sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        deleteItem(itemId);
+                    }
+                });
+            });
+
+            $('#bulk-delete-btn').on('click', function() {
+                if (allDemirbasData.length === 0) {
+                    Swal.fire('Uyarı', 'Listede silinecek demirbaş bulunmuyor.', 'warning');
+                    return;
+                }
+                Swal.fire({
+                    title: `Tüm demirbaşları silmek istediğinize emin misiniz?`,
+                    text: `Toplam ${allDemirbasData.length} adet demirbaş silinecek. Bu işlem geri alınamaz!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, hepsini sil!',
+                    cancelButtonText: 'Hayır, vazgeç'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        const idsToDelete = allDemirbasData.map(item => item.CariID); // Tüm ID'leri al
+                        const rateLimit = 5;
+                        const delay = 1000;
+                        let successfulDeletes = 0;
+                        let failedDeletes = 0;
+                        Swal.fire({
+                            title: 'Toplu Silme Başlatıldı',
+                            html: `Toplam <b>${idsToDelete.length}</b> demirbaş siliniyor...<br>Başarılı: <b>0</b> | Hatalı: <b>0</b>`,
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+                        for (let i = 0; i < idsToDelete.length; i += rateLimit) {
+                            const batch = idsToDelete.slice(i, i + rateLimit);
+                            const promises = batch.map(id => {
+                                // <!-- GÜNCELLENDİ: 'apiUrl' yerine 'apiBaseUrl' (temiz) kullanılır -->
+                                const deleteUrl = `${apiBaseUrl}/${id}`;
+                                return $.ajax({
+                                    url: deleteUrl,
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${bearerToken}` }
+                                }).done((response, status, xhr) => {
+                                    addLog('API Call', 'DELETE', deleteUrl, xhr.status, null, JSON.stringify(response));
+                                    if(response.Sonuc) {
+                                        successfulDeletes++;
+                                        $(`#row-${id}`).fadeOut(500, function() {
+                                            demirbasDataTable.row($(this)).remove().draw(false);
+                                        });
+                                    } else {
+                                        failedDeletes++;
+                                    }
+                                }).fail((xhr) => {
+                                    addLog('API Call', 'DELETE', deleteUrl, xhr.status, null, xhr.responseText);
+                                    failedDeletes++;
+                                });
+                            });
+                            await Promise.allSettled(promises);
+                            Swal.update({
+                                html: `Toplam <b>${idsToDelete.length}</b> demirbaş siliniyor...<br>Başarılı: <b>${successfulDeletes}</b> | Hatalı: <b>${failedDeletes}</b>`
+                            });
+                            if(i + rateLimit < idsToDelete.length) {
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                            }
+                        }
+                        // İşlem bittikten sonra ana veri listesini de temizleyelim
+                        allDemirbasData = allDemirbasData.filter(item => !idsToDelete.includes(item.CariID));
+                        // Anahtar listesini de güncelle
+                        apiDataKeys = extractApiKeys(allDemirbasData);
+                        populateApiKeysDatalist();
+
+                        Swal.fire('İşlem Tamamlandı', `Başarılı: ${successfulDeletes}, Hatalı: ${failedDeletes}`, failedDeletes > 0 ? 'warning' : 'success');
+                    }
+                });
+            });
+
+            // <!-- Düzenleme Fonksiyonları -->
+
+            // Tablodaki bir satırı güncelle
+            function updateDataTableRow(id, updatedData) {
+                const itemIndex = allDemirbasData.findIndex(item => item.CariID === id);
+                if (itemIndex === -1) return;
+                
+                Object.assign(allDemirbasData[itemIndex], updatedData);
+                const item = allDemirbasData[itemIndex];
+
+                const row = demirbasDataTable.row($(`#row-${id}`));
+                if (row) {
+                    row.data([
+                        item.CariKodu || '-',
+                        item.CariAdi || '-',
+                        item.SubeAdi || '-',
+                        new Date(item.OlsTar).toLocaleDateString('tr-TR'),
+                        `<button class="btn btn-sm btn-primary edit-btn" data-id="${item.CariID}" data-stok-kodu="${item.CariKodu || ''}">
+                            <i class="fas fa-edit"></i> Düzenle
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${item.CariID}">
+                            <i class="fas fa-trash-alt"></i> Sil
+                        </button>`
+                    ]).draw(false); 
+                }
+            }
+
+            // Toplu düzenleme işlemini yürüt
+            async function processBulkEdit(itemsToEdit, fields, startIndex) {
+                const rateLimit = 5;
+                const delay = 1000;
+                let successfulUpdates = 0;
+                let failedUpdates = 0;
+
+                let currentCounter = startIndex;
+
+                Swal.fire({
+                    title: 'Toplu Güncelleme Başlatıldı',
+                    html: `Toplam <b>${itemsToEdit.length}</b> kayıt güncelleniyor...<br>Başarılı: <b>0</b> | Hatalı: <b>0</b>`,
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                // Gönderilecek istek kuyruğunu oluştur
+                const updateQueue = [];
+                for (const item of itemsToEdit) {
+                    const id = item.CariID;
+                    // <!-- GÜNCELLENDİ: 'apiUrl' yerine 'apiBaseUrl' (temiz) kullanılır -->
+                    const updateUrl = `${apiBaseUrl}/${id}`;
+                    const payload = {}; // Bu kayıt için gönderilecek JSON
+
+                    for (const field of fields) {
+                        // RegExp (g = global) kullanarak string içindeki TÜM {i}'leri değiştir
+                        payload[field.key] = field.value.replace(/{i}/g, currentCounter);
+                    }
+                    updateQueue.push({ id, url: updateUrl, data: payload });
+
+                    // Sayacı *bir sonraki kayıt için* artır
+                    currentCounter++;
+                }
+
+                // Kuyruğu gruplar halinde işle
+                for (let i = 0; i < updateQueue.length; i += rateLimit) {
+                    const batch = updateQueue.slice(i, i + rateLimit);
+                    const promises = batch.map(req => {
+                        return $.ajax({
+                            url: req.url,
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${bearerToken}` },
+                            contentType: 'application/json',
+                            data: JSON.stringify(req.data) 
+                        }).done((response, status, xhr) => {
+                            addLog('API Call', 'PUT', req.url, xhr.status, req.data, JSON.stringify(response));
+                            if(response.Sonuc) {
+                                successfulUpdates++;
+                                // Tablo satırını anında güncelle
+                                updateDataTableRow(req.id, req.data);
+                            } else {
+                                failedUpdates++;
+                            }
+                        }).fail((xhr) => {
+                            addLog('API Call', 'PUT', req.url, xhr.status, req.data, xhr.responseText);
+                            failedUpdates++;
+                        });
+                    });
+
+                    await Promise.allSettled(promises);
+
+                    Swal.update({
+                        html: `Toplam <b>${itemsToEdit.length}</b> kayıt güncelleniyor...<br>Başarılı: <b>${successfulUpdates}</b> | Hatalı: <b>${failedUpdates}</b>`
+                    });
+
+                    if (i + rateLimit < updateQueue.length) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+                
+                // Güncelleme sonrası anahtar listesini yenile (yeni anahtar eklenmiş olabilir)
+                apiDataKeys = extractApiKeys(allDemirbasData);
+                populateApiKeysDatalist();
+
+                Swal.fire('İşlem Tamamlandı', `Başarılı: ${successfulUpdates}, Hatalı: ${failedUpdates}`, failedUpdates > 0 ? 'warning' : 'success');
+            }
+
+            // Düzenleme modalını aç
+            function openEditModal(itemsToEdit) {
+                const modalTitle = itemsToEdit.length > 1 
+                    ? `Toplu Düzenle (${itemsToEdit.length} Kayıt)` 
+                    : `Düzenle (Stok Kodu: ${itemsToEdit[0].CariKodu})`;
+
+                let swalHtml = `
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="swal-start-index"><b>Başlangıç Sayısı</b> (<code>{i}</code> için)</label>
+                            <input type="number" class="form-control" id="swal-start-index" value="1" min="0">
+                        </div>
+                    </div>
+                    <hr>
+                    <div id="edit-fields-container">
+                        <div class="form-row mb-3 field-row">
+                            <div class="col-md-5">
+                                <label>Alan Adı</label>
+                                <input type="text" class="form-control key-input" placeholder="Örn: CariAdi (seçin veya yazın)" list="api-keys-list">
+                            </div>
+                            <div class="col-md-6">
+                                <label>Yeni Değer</label>
+                                <input type="text" class="form-control value-input" placeholder="Örn: Cihaz-{i}">
+                            </div>
+                            <div class="col-md-1 align-self-center text-center">
+                                <button class="btn btn-danger remove-field-btn" style="display: none;"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="add-field-btn" class="btn btn-info btn-sm mt-2"><i class="fas fa-plus"></i> Alan Ekle</button>
+                `;
+
+                Swal.fire({
+                    title: modalTitle,
+                    html: swalHtml,
+                    width: '800px',
+                    showCancelButton: true,
+                    confirmButtonText: 'Güncellemeyi Başlat',
+                    cancelButtonText: 'İptal',
+                    didOpen: () => {
+                        const container = $('#edit-fields-container');
+                        
+                        // "Alan Ekle" butonu
+                        $('#add-field-btn').on('click', () => {
+                            const newFieldHtml = `
+                                <div class="form-row mb-3 field-row">
+                                    <div class="col-md-5">
+                                        <label>Alan Adı</label>
+                                        <input type="text" class="form-control key-input" placeholder="Örn: SeriNo (seçin veya yazın)" list="api-keys-list">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Yeni Değer</label>
+                                        <input type="text" class="form-control value-input" placeholder="Örn: SN-{i}">
+                                    </div>
+                                    <div class="col-md-1 align-self-center text-center">
+                                        <button class="btn btn-danger remove-field-btn"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>`;
+                            container.append(newFieldHtml);
+                        });
+
+                        // "Alan Sil" butonu
+                        $(Swal.getHtmlContainer()).on('click', '.remove-field-btn', function() {
+                            $(this).closest('.field-row').remove();
+                        });
+                    },
+                    preConfirm: () => {
+                        // Modal kapanmadan önce verileri topla ve doğrula
+                        const fields = [];
+                        let isValid = true;
+
+                        const startIndex = parseInt($('#swal-start-index').val());
+                        if (isNaN(startIndex)) {
+                             Swal.showValidationMessage('Başlangıç Sayısı geçerli bir sayı olmalıdır.');
+                             return false;
+                        }
+                        
+                        $(Swal.getHtmlContainer()).find('.field-row').each(function() {
+                            const key = $(this).find('.key-input').val().trim();
+                            const value = $(this).find('.value-input').val().trim();
+                            
+                            if (!key) {
+                                Swal.showValidationMessage('Tüm "Alan Adı" alanları doldurulmalıdır.');
+                                isValid = false;
+                                return false; // .each() döngüsünü kır
+                            }
+                            
+                            fields.push({ key, value });
+                        });
+
+                        if (!isValid) {
+                            return false; // preConfirm'i durdur
+                        }
+                        if (fields.length === 0) {
+                             Swal.showValidationMessage('Güncellenecek en az bir alan eklemelisiniz.');
+                             return false;
+                        }
+                        
+                        return { fields, startIndex };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const { fields, startIndex } = result.value;
+                        processBulkEdit(itemsToEdit, fields, startIndex);
+                    }
+                });
+            }
+
+            // Tekil Düzenle butonu tıklaması
+            $('#demirbasTable').on('click', '.edit-btn', function() {
+                const itemId = $(this).data('id');
+                const item = allDemirbasData.find(d => d.CariID === itemId);
+                
+                if (item) {
+                    openEditModal([item]); // Tek bir öğeyi dizi içinde gönder
+                } else {
+                    Swal.fire('Hata', 'Kayıt verisi bulunamadı.', 'error');
+                }
+            });
+
+            // Toplu Düzenle butonu tıklaması
+            $('#bulk-edit-btn').on('click', function() {
+                if (allDemirbasData.length === 0) {
+                    Swal.fire('Uyarı', 'Listede düzenlenecek demirbaş bulunmuyor.', 'warning');
+                    return;
+                }
+                openEditModal(allDemirbasData); // Tüm listeyi gönder
+            });
+
+            // <!-- Düzenleme Fonksiyonları Bitiş -->
+
+            // İlk yükleme
+            fetchDemirbas();
+        });
+    </script>
+</body>
+</html>
+

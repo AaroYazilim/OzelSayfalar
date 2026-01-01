@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{SayfaAdi}}</title>
+    <script class="AaroOnTanimGecici">
+        var Aaro = {
+            "SayfaKodu": "AlisSatisKarsilastirmaRaporu",
+            "SayfaAdi": "Alış - Satış Karşılaştırma Raporu",
+            "AnaUrl": "https://localhost:44346/",
+            "Tarih": new Date().toISOString(),
+            "IsAuthenticated": "True",
+            "UserIP": "127.0.0.1",
+            "Oturum": {
+                "KullaniciKodu": "yonetici@temel",
+                "KullaniciAdi": "A Kullanicisi",
+                "KullaniciID": "2",
+                "GrupAdi": "Temel",
+                "SirketID": "0",
+                "SubeID": "0",
+                "SirketAdi": "Tüm Şirketler",
+                "SubeAdi": "Tüm Şubeler",
+                "KullaniciGrupID": "2",
+                "KullaniciGrupKodu": "YNTC",
+                "KullaniciGrupAdi": "Yönetici Grubu",
+                "Token": "pat_wTjKHRFhTJgZNSeoEdvLae_eJDcxgoU8yIqbFKFQl64"
+            },
+            "QueryString": {},
+            "Form": {}
+        }
+    </script>
+    <!-- Gerekli CDN'ler -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+
+    <!-- Özel Kurumsal CSS Stilleri -->
+    <style>
+        :root {
+            --kurumsal-mavi: #0d47a1;
+            --kurumsal-acik-mavi: #1976d2;
+            --kurumsal-gri: #f5f7fa;
+            --kurumsal-kenarlik: #dee2e6;
+            --kurumsal-golge: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --kurumsal-yazi: #212529;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--kurumsal-gri); color: var(--kurumsal-yazi); }
+        .card { border: 1px solid var(--kurumsal-kenarlik); border-radius: 0.5rem; box-shadow: var(--kurumsal-golge); transition: all 0.3s ease-in-out; overflow: hidden; }
+        .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12); transform: translateY(-2px); }
+        .card-header { background-color: #fff; color: var(--kurumsal-mavi); font-weight: 600; padding: 1rem 1.25rem; border-bottom: 1px solid var(--kurumsal-kenarlik); display: flex; justify-content: space-between; align-items: center; }
+        .btn { border-radius: 0.375rem; font-weight: 500; padding: 0.6rem 1.2rem; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-primary { background-color: var(--kurumsal-mavi); border-color: var(--kurumsal-mavi); }
+        .btn-primary:hover { background-color: #0b3a82; border-color: #0b3a82; transform: translateY(-1px); }
+        .form-control { border-radius: 0.375rem; border: 1px solid var(--kurumsal-kenarlik); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .form-control:focus { border-color: var(--kurumsal-acik-mavi); box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25); }
+        .accordion .card-header { cursor: pointer; }
+        .accordion .card-header .accordion-icon::before { font-family: 'Font Awesome 5 Free'; content: "\f078"; font-weight: 900; transition: transform 0.3s ease; }
+        .accordion .card-header[aria-expanded="true"] .accordion-icon::before { transform: rotate(-180deg); }
+        .nav-tabs { border-bottom: 2px solid var(--kurumsal-kenarlik); }
+        .nav-tabs .nav-link { border: none; border-bottom: 2px solid transparent; color: #6c757d; font-weight: 500; margin-bottom: -2px; }
+        .nav-tabs .nav-link:hover { border-bottom-color: var(--kurumsal-acik-mavi); color: var(--kurumsal-acik-mavi); }
+        .nav-tabs .nav-link.active { color: var(--kurumsal-mavi); background-color: transparent; border-bottom: 2px solid var(--kurumsal-mavi); }
+        .kpi-card { background-color: #fff; border: 1px solid var(--kurumsal-kenarlik); border-radius: 0.5rem; padding: 1.5rem; text-align: center; box-shadow: var(--kurumsal-golge); margin-bottom: 1rem; }
+        .kpi-card .kpi-value { font-size: 2.25rem; font-weight: 700; color: var(--kurumsal-mavi); }
+        .kpi-card .kpi-label { font-size: 1rem; font-weight: 500; color: #6c757d; }
+        .preloader-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.9); z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--kurumsal-mavi); border-radius: 0.5rem; }
+        .preloader-overlay p { font-weight: 500; font-size: 1.1rem; }
+        .text-right { text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid my-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="sayfa-adi" class="mb-0">{{SayfaAdi}}</h2>
+            <div class="text-muted"><i class="fas fa-user-circle"></i> <span id="kullanici-kodu"></span></div>
+        </div>
+
+        <div class="accordion" id="filtreAccordion">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center" id="filtreHeading" data-toggle="collapse" data-target="#collapseFiltre" aria-expanded="true" aria-controls="collapseFiltre">
+                    <span><i class="fas fa-filter mr-2"></i> Filtreleme Seçenekleri</span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div id="collapseFiltre" class="collapse show" aria-labelledby="filtreHeading" data-parent="#filtreAccordion">
+                    <div class="card-body">
+                        <form id="raporFormu">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6"><div class="form-group"><label for="baslangicTarihi">Başlangıç Tarihi</label><input type="text" class="form-control" id="baslangicTarihi" placeholder="Başlangıç"></div></div>
+                                <div class="col-lg-3 col-md-6"><div class="form-group"><label for="bitisTarihi">Bitiş Tarihi</label><input type="text" class="form-control" id="bitisTarihi" placeholder="Bitiş"></div></div>
+                                <div class="col-lg-4 col-md-6"><div class="form-group"><label for="cariKart">Esnek Arama (Ad/Kod)</label><input type="text" class="form-control" id="cariKart" placeholder="Tüm Müşteriler"></div></div>
+                                <div class="col-lg-2 col-md-6 d-flex align-items-end"><div class="form-group w-100"><button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search mr-1"></i> Raporu Getir</button></div></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="card mt-4" style="position: relative;">
+        <div id="preloader" class="preloader-overlay" style="display: none;"><div class="text-center"><i class="fas fa-spinner fa-spin fa-3x"></i><p id="preloader-text" class="mt-3">Veriler yükleniyor...</p></div></div>
+
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item"><a class="nav-link active" id="ozet-tab" data-toggle="tab" href="#ozet"><i class="fas fa-tachometer-alt mr-2"></i>Özet</a></li>
+                <li class="nav-item"><a class="nav-link" id="cari-analiz-tab" data-toggle="tab" href="#cari-analiz"><i class="fas fa-users mr-2"></i>Cari Analizi</a></li>
+                <li class="nav-item"><a class="nav-link" id="satis-tab" data-toggle="tab" href="#satis"><i class="fas fa-arrow-up text-success mr-2"></i>Satış Fatura Listesi</a></li>
+                <li class="nav-item"><a class="nav-link" id="alis-tab" data-toggle="tab" href="#alis"><i class="fas fa-arrow-down text-danger mr-2"></i>Alış Fatura Listesi</a></li>
+                <li class="nav-item"><a class="nav-link" id="ai-analiz-tab" data-toggle="tab" href="#ai-analiz"><i class="fas fa-magic mr-2"></i>✨ Yapay Zeka Analizi</a></li>
+            </ul>
+
+            <div class="tab-content pt-3" id="myTabContent">
+                <div class="tab-pane fade show active" id="ozet">
+                    <div id="raporDurum" class="alert alert-info text-center">Raporu görüntülemek için lütfen filtreleri uygulayın.</div>
+                    <div id="ozetIcerik" style="display:none;">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6"><div class="kpi-card"><div class="kpi-label">Toplam Satış (TRY)</div><div class="kpi-value text-success" id="kpi-toplam-satis">-</div><small class="text-muted"><span id="kpi-satis-adet">-</span> fatura</small></div></div>
+                            <div class="col-lg-3 col-md-6"><div class="kpi-card"><div class="kpi-label">Toplam Alış (TRY)</div><div class="kpi-value text-danger" id="kpi-toplam-alis">-</div><small class="text-muted"><span id="kpi-alis-adet">-</span> fatura</small></div></div>
+                            <div class="col-lg-3 col-md-6"><div class="kpi-card"><div class="kpi-label">Fark (TRY)</div><div class="kpi-value" id="kpi-brut-kar">-</div><small class="text-muted">&nbsp;</small></div></div>
+                            <div class="col-lg-3 col-md-6"><div class="kpi-card"><div class="kpi-label">Fark Oranı (%)</div><div class="kpi-value" id="kpi-kar-marji">-</div><small class="text-muted">&nbsp;</small></div></div>
+                        </div>
+                        <hr>
+                        <div class="card mt-3">
+                            <div class="card-header">Dönemsel Fark Trendi</div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="btn-group btn-group-toggle" data-toggle="buttons" id="comparisonChartPeriod">
+                                        <label class="btn btn-outline-primary btn-sm active"><input type="radio" name="options" value="monthly" checked> Aylık</label>
+                                        <label class="btn btn-outline-primary btn-sm"><input type="radio" name="options" value="quarterly"> Çeyrek</label>
+                                        <label class="btn btn-outline-primary btn-sm"><input type="radio" name="options" value="yearly"> Yıllık</label>
+                                    </div>
+                                </div>
+                                <div style="position: relative; height: 350px;"><canvas id="comparisonChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="cari-analiz">
+                   <div class="card">
+                    <div class="card-header">Cari Hesap Ekstresi (Alış-Satış Bakiye)</div>
+                    <div class="card-body"><div class="table-responsive"><table id="cariAnalizTable" class="table table-bordered" style="width:100%"></table></div></div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="satis"><div class="table-responsive"><table id="satisFaturasiTable" class="table table-bordered" style="width:100%"></table></div></div>
+            <div class="tab-pane fade" id="alis"><div class="table-responsive"><table id="alisFaturasiTable" class="table table-bordered" style="width:100%"></table></div></div>
+            <div class="tab-pane fade" id="ai-analiz" role="tabpanel" aria-labelledby="ai-analiz-tab">
+                <div class="card">
+                    <div class="card-header">Yapay Zeka Prompt Ayarları</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="systemPromptTextarea"><b>Sistem Talimatı (Prompt)</b></label>
+                            <textarea class="form-control" id="systemPromptTextarea" rows="6"></textarea>
+                            <small class="form-text text-muted">Yapay zekanın raporu nasıl analiz edeceğini ve hangi formatta çıktı vereceğini bu talimat ile belirleyebilirsiniz.</small>
+                        </div>
+                        <button id="geminiAnalyzeButton" class="btn btn-primary" disabled><i class="fas fa-magic mr-2"></i>Verileri Yorumla</button>
+                    </div>
+                </div>
+                <div id="geminiAnalysisResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.bootstrap4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+ <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#kullanici-kodu').text(Aaro.Oturum.KullaniciKodu);
+        var yilBasi = new Date().getFullYear() + "-01-01";
+        $("#baslangicTarihi").val(Aaro.QueryString.TarihBas ?? yilBasi);
+        $("#bitisTarihi").val(Aaro.QueryString.TarihBit ?? new Date());
+
+        let chartInstances = {};
+        let g_satisData = [];
+        let g_alisData = [];
+        let g_kpiData = {};
+
+        let defaultSystemPrompt = 'Tüm verileri analiz eder misin.';
+        $('#systemPromptTextarea').val(defaultSystemPrompt);
+
+defaultSystemPrompt += ' You are a senior sales analyst in Turkey. Analyze the provided sales report data. Your response MUST be in Turkish and formatted as clean HTML using Bootstrap 4 components. Do not include <html>, <head>, or <body> tags. Structure your response in a div with the class \'row\'.';
+
+        const datepickerOptions = {
+            singleMode: true, allowRepick: true, format: 'YYYY-MM-DD', lang: 'tr-TR',
+            buttonText: { previousMonth: `<i class="fas fa-chevron-left"></i>`, nextMonth: `<i class="fas fa-chevron-right"></i>`, apply: 'Uygula', cancel: 'İptal' }
+        };
+        new Litepicker({ element: document.getElementById('baslangicTarihi'), ...datepickerOptions });
+        new Litepicker({ element: document.getElementById('bitisTarihi'), ...datepickerOptions });
+
+        $('#raporFormu').on('submit', function(e) {
+            e.preventDefault();
+            const bearerToken = "pat_wTjKHRFhTJgZNSeoEdvLae_eJDcxgoU8yIqbFKFQl64";
+            const filtreler = {
+                TarihBas: $('#baslangicTarihi').val() || undefined,
+                TarihSon: $('#bitisTarihi').val() || undefined,
+                EsnekAramaKisiti: $('#cariKart').val() || undefined
+            };
+
+            const preloader = $('#preloader');
+            preloader.show();
+            
+            const satisPromise = fetchAllPaginatedData({ bearerToken, endpoint: 'https://erp.aaro.com.tr/api/SatisFaturasiListe', initialParams: filtreler });
+            const alisPromise = fetchAllPaginatedData({ bearerToken, endpoint: 'https://erp.aaro.com.tr/api/AlisFaturasiListe', initialParams: filtreler });
+
+            Promise.all([satisPromise, alisPromise])
+            .then(([satisFaturalari, alisFaturalari]) => {
+                g_satisData = satisFaturalari;
+                g_alisData = alisFaturalari;
+                
+                if (g_satisData.length === 0 && g_alisData.length === 0) {
+                    $('#raporDurum').text("Belirtilen kriterlere uygun veri bulunamadı.").show();
+                    $('#ozetIcerik').hide();
+                    $('#geminiAnalyzeButton').prop('disabled', true);
+                } else {
+                    $('#raporDurum').hide();
+                    $('#ozetIcerik').show();
+                    $('#geminiAnalyzeButton').prop('disabled', false);
+                    renderSummaryReports(g_satisData, g_alisData);
+                    renderDataTable('#satisFaturasiTable', g_satisData, true);
+                    renderDataTable('#alisFaturasiTable', g_alisData, false);
+                    renderComparisonChart(g_satisData, g_alisData);
+                    renderCariAnalysis(g_satisData, g_alisData);
+                }
+            })
+            .catch(hata => {
+                console.error("Hata:", hata);
+                $('#raporDurum').html('<span class="text-danger">Rapor oluşturulurken bir hata oluştu.</span>').show();
+            }).finally(() => preloader.hide());
+        });
+
+        $('#comparisonChartPeriod .btn').on('click', function() {
+            renderComparisonChart(g_satisData, g_alisData, $(this).find('input').val());
+        });
+        
+        $('#geminiAnalyzeButton').on('click', function() {
+            Swal.fire({
+                title: 'Onay',
+                text: "Verileriniz yapay zeka ile paylaşılacaktır, onaylıyor musunuz?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d47a1',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, Onaylıyorum',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    callGeminiApi();
+                }
+            })
+        });
+
+        const formatCurrency = (value) => (value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const formatNumber = (value) => (value || 0).toLocaleString('tr-TR');
+        
+        async function callGeminiApi() {
+            const resultDiv = $('#geminiAnalysisResult');
+            const button = $('#geminiAnalyzeButton');
+            resultDiv.html('<div class="text-center p-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Analiz oluşturuluyor...</p></div>');
+            button.prop('disabled', true);
+            
+            const systemPrompt = $('#systemPromptTextarea').val();
+            
+            const { baslangic, bitis } = { baslangic: $('#baslangicTarihi').val() || 'Belirtilmemiş', bitis: $('#bitisTarihi').val() || 'Belirtilmemiş' };
+            const userQuery = `Analyze the business performance from ${baslangic} to ${bitis}.
+            - Total Sales: ${formatCurrency(g_kpiData.toplamSatis)} (${formatNumber(g_kpiData.satisAdet)} invoices)
+            - Total Purchases: ${formatCurrency(g_kpiData.toplamAlis)} (${formatNumber(g_kpiData.alisAdet)} invoices)
+            - Net Difference (Profit/Loss): ${formatCurrency(g_kpiData.brutKar)}
+            - Profit Margin: ${g_kpiData.karMarji.toFixed(2)}%
+            - Top 5 Most Profitable Accounts (Sales - Purchases): ${g_kpiData.enKarliCariler.map(c => `${c.KartAdi}: ${formatCurrency(c.Bakiye)}`).join(', ')}
+            - Top 5 Least Profitable Accounts (Sales - Purchases): ${g_kpiData.enZararliCariler.map(c => `${c.KartAdi}: ${formatCurrency(c.Bakiye)}`).join(', ')}`;
+
+            try {
+                const apiKey = "AIzaSyAcXqPH_HnmWwcUXJR00C00iIzi_eXdBuk"; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) { throw new Error(`API call failed with status: ${response.status}`); }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    resultDiv.html(candidate.content.parts[0].text);
+                } else {
+                    resultDiv.html('<div class="alert alert-danger">Analiz sonucu alınamadı. Lütfen tekrar deneyin.</div>');
+                }
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                resultDiv.html('<div class="alert alert-danger">Analiz sırasında bir hata oluştu. Lütfen konsolu kontrol edin.</div>');
+            } finally {
+                button.prop('disabled', false);
+            }
+        }
+
+
+        function renderDataTable(tableId, data, isSatis) {
+            const columns = [
+                { data: 'Tarih', title: 'Tarih', render: d => new Date(d).toLocaleDateString('tr-TR') },
+                { data: 'BelgeNo', title: 'Belge No' },
+                { data: 'KartAdi', title: isSatis ? 'Müşteri Adı' : 'Tedarikçi Adı' },
+                { data: 'TutarDvz', title: 'Döviz Tutarı', className: 'text-right', render: (d,t,r) => (r.DovizKodu === 'TRY' ? r.Tutar : d || 0).toLocaleString('tr-TR', {style:'currency', currency: r.DovizKodu || 'TRY'})},
+                { data: 'DovizKodu', title: 'PB' },
+                { data: 'Tutar', title: 'Tutar (TRY)', className: 'text-right', render: d => formatCurrency(d) }
+            ];
+            if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().destroy();
+            $(tableId).DataTable({ data, columns, responsive: true, language: { url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Turkish.json" }, dom: 'Bfrtip', buttons: ['copy', 'excel', 'print'] });
+        }
+        
+        function renderSummaryReports(satisData, alisData) {
+            const toplamSatis = satisData.reduce((sum, f) => sum + f.Tutar, 0);
+            const toplamAlis = alisData.reduce((sum, f) => sum + f.Tutar, 0);
+            const brutKar = toplamSatis - toplamAlis;
+            const karMarji = toplamSatis > 0 ? (brutKar / toplamSatis) * 100 : 0;
+
+            $('#kpi-toplam-satis').text(formatCurrency(toplamSatis));
+            $('#kpi-toplam-alis').text(formatCurrency(toplamAlis));
+            $('#kpi-satis-adet').text(formatNumber(satisData.length));
+            $('#kpi-alis-adet').text(formatNumber(alisData.length));
+            $('#kpi-kar-marji').text(karMarji.toFixed(2) + ' %').toggleClass('text-danger', karMarji < 0).toggleClass('text-success', karMarji > 0);
+            
+            const brutKarEl = $('#kpi-brut-kar');
+            brutKarEl.text(formatCurrency(brutKar)).removeClass('text-success text-danger').addClass(brutKar > 0 ? 'text-success' : brutKar < 0 ? 'text-danger' : '');
+            
+            // Populate g_kpiData
+            g_kpiData = {
+                toplamSatis: toplamSatis,
+                toplamAlis: toplamAlis,
+                satisAdet: satisData.length,
+                alisAdet: alisData.length,
+                brutKar: brutKar,
+                karMarji: karMarji
+            };
+        }
+
+        function renderCariAnalysis(satisData, alisData) {
+            const cariOzet = {};
+            satisData.forEach(f => {
+                cariOzet[f.KartAdi] = cariOzet[f.KartAdi] || { satis: 0, alis: 0 };
+                cariOzet[f.KartAdi].satis += f.Tutar;
+            });
+            alisData.forEach(f => {
+                cariOzet[f.KartAdi] = cariOzet[f.KartAdi] || { satis: 0, alis: 0 };
+                cariOzet[f.KartAdi].alis += f.Tutar;
+            });
+            const dataSet = Object.keys(cariOzet).map(kartAdi => ({ KartAdi: kartAdi, ToplamSatis: cariOzet[kartAdi].satis, ToplamAlis: cariOzet[kartAdi].alis, Bakiye: cariOzet[kartAdi].satis - cariOzet[kartAdi].alis }));
+
+            // Add top/bottom accounts to g_kpiData
+            const sortedByBakiye = [...dataSet].sort((a, b) => b.Bakiye - a.Bakiye);
+            g_kpiData.enKarliCariler = sortedByBakiye.filter(c => c.Bakiye > 0).slice(0, 5);
+            g_kpiData.enZararliCariler = sortedByBakiye.filter(c => c.Bakiye < 0).slice(-5).reverse();
+
+            const columns = [
+                { data: 'KartAdi', title: 'Cari Adı' },
+                { data: 'ToplamSatis', title: 'Toplam Satış (TRY)', className: 'text-right', render: d => formatCurrency(d) },
+                { data: 'ToplamAlis', title: 'Toplam Alış (TRY)', className: 'text-right', render: d => formatCurrency(d) },
+                { data: 'Bakiye', title: 'Bakiye (Satış - Alış)', className: 'text-right', render: d => `<span class="${d > 0 ? 'text-success' : d < 0 ? 'text-danger' : ''}">${formatCurrency(d)}</span>` }
+            ];
+            if ($.fn.DataTable.isDataTable('#cariAnalizTable')) $('#cariAnalizTable').DataTable().destroy();
+            $('#cariAnalizTable').DataTable({ data: dataSet, columns, responsive: true, language: { url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Turkish.json" }, dom: 'Bfrtip', buttons: ['copy', 'excel', 'print'], order: [[3, 'desc']] });
+        }
+
+        function renderComparisonChart(satisData, alisData, period = 'monthly') {
+            const getGroupKey = (dateStr, period) => {
+                const date = new Date(dateStr);
+                switch(period) {
+                case 'quarterly': return `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`;
+                case 'yearly': return date.getFullYear().toString();
+                default: return dateStr.substring(0, 7);
+                }
+            };
+            const satisPeriodData = satisData.reduce((acc, f) => { const key = getGroupKey(f.Tarih, period); acc[key] = (acc[key] || 0) + f.Tutar; return acc; }, {});
+            const alisPeriodData = alisData.reduce((acc, f) => { const key = getGroupKey(f.Tarih, period); acc[key] = (acc[key] || 0) + f.Tutar; return acc; }, {});
+            const allKeys = [...new Set([...Object.keys(satisPeriodData), ...Object.keys(alisPeriodData)])].sort();
+            
+            createOrUpdateChart('comparisonChart', 'bar', {
+                labels: allKeys,
+                datasets: [
+                    { label: 'Toplam Satış', data: allKeys.map(k => satisPeriodData[k] || 0), backgroundColor: 'rgba(40, 167, 69, 0.7)' },
+                    { label: 'Toplam Alış', data: allKeys.map(k => alisPeriodData[k] || 0), backgroundColor: 'rgba(220, 53, 69, 0.7)' },
+                    { label: 'Fark', data: allKeys.map(k => (satisPeriodData[k] || 0) - (alisPeriodData[k] || 0)), type: 'line', borderColor: 'rgba(13, 71, 161, 0.9)', backgroundColor: 'rgba(13, 71, 161, 0.1)', fill: true }
+                ]
+            }, { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => formatCurrency(value) } } } });
+        }
+        
+        function createOrUpdateChart(canvasId, type, data, options) {
+            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+            chartInstances[canvasId] = new Chart(document.getElementById(canvasId), { type, data, options });
+        }
+
+        function fetchAllPaginatedData(options) {
+            return new Promise((resolve, reject) => {
+                const settings = $.extend(true, {}, { method: 'GET', initialParams: {}, rateLimitDelay: 200, pagination: { pageParamName: 'Sayfa', pageSizeParamName: 'SayfaSatirSayisi', pageSize: 1000, getDataArray: r => r.Model, getPaginationInfo: r => r.SayfalandirmaBilgisi, hasNextPage: p => p.SonrakiSayfaVarMi }}, options);
+                let allData = [];
+                function fetchPage(pageNumber) {
+                    const requestData = $.extend({}, settings.initialParams, { [settings.pagination.pageParamName]: pageNumber, [settings.pagination.pageSizeParamName]: settings.pagination.pageSize });
+                    $.ajax({
+                        url: settings.endpoint, method: settings.method,
+                        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + settings.bearerToken },
+                        data: requestData
+                    }).done(response => {
+                        const dataArray = settings.pagination.getDataArray(response);
+                        const pInfo = settings.pagination.getPaginationInfo(response);
+                        allData.push(...(dataArray || []));
+                        if (pInfo && settings.pagination.hasNextPage(pInfo)) setTimeout(() => fetchPage(pageNumber + 1), settings.rateLimitDelay);
+                        else resolve(allData.filter(d => d.Tutar !== 0));
+                    }).fail((j) => reject(j));
+                }
+                fetchPage(1);
+            });
+        }
+    });
+</script>
+</body>
+</html>

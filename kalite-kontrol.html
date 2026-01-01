@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalite Kontrol Raporu</title>
+
+    <!-- Aaro Tanimlamalari (Güncellendi) -->
+    <script class="AaroOnTanimGecici">
+        var Aaro = {
+            "SayfaKodu": "KaliteKontrolRaporu",
+            "SayfaAdi": "Kalite Kontrol Raporu",
+            "AnaUrl": "https://localhost:44346/", // Bu değer sizde farklı olabilir
+            "Tarih": new Date().toISOString(),
+            "IsAuthenticated": "True",
+            "UserIP": "127.0.0.1",
+            "Oturum": {
+                "KullaniciKodu": "yonetici@temel",
+                "KullaniciAdi": "A Kullanicisi",
+                "KullaniciID": "2",
+                "GrupAdi": "Temel",
+                "SirketID": "0",
+                "SubeID": "0",
+                "SirketAdi": "Tüm Şirketler",
+                "SubeAdi": "Tüm Şubeler",
+                "KullaniciGrupID": "2",
+                "KullaniciGrupKodu": "YNTC",
+                "KullaniciGrupAdi": "Yönetici Grubu",
+                "Token": "" // Gerçek token API çağrısında kullanılacak
+            },
+            "QueryString": {},
+            "Form": {}
+        }
+    </script>
+
+    <!-- Gerekli CDN'ler -->
+    <!-- Google Fonts: Inter -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Bootstrap 4 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.bootstrap4.min.css">
+    <!-- DataTables Responsive CSS'i KALIYOR, çünkü JS'i kapatsak bile stil çakışması olmasın -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <!-- Font Awesome (ikonlar için) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Litepicker (Tarih Seçici) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+    
+    <!-- DEĞİŞTİ: JSON Kütüphanesi CSS'i kaldırıldı -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/json-formatter-js/2.3.4/json-formatter.min.css"> -->
+
+
+    <!-- Özel Kurumsal CSS Stilleri (varsayilan.html'den alındı) -->
+    <style>
+        :root {
+            --kurumsal-mavi: #0d47a1; /* Ana Renk */
+            --kurumsal-acik-mavi: #1976d2; /* Vurgu Rengi */
+            --kurumsal-gri: #f5f7fa; /* Arkaplan Rengi */
+            --kurumsal-kenarlik: #dee2e6; /* Kenarlık Rengi */
+            --kurumsal-golge: 0 4px 12px rgba(0, 0, 0, 0.08); /* Gölge */
+            --kurumsal-yazi: #212529;
+            --basari: #28a745;
+            --uyari: #ffc107;
+            --tehlike: #dc3545;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--kurumsal-gri);
+            color: var(--kurumsal-yazi);
+        }
+
+        /* Card Yapısı */
+        .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            border-radius: 0.5rem;
+            box-shadow: var(--kurumsal-golge);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden; /* Header renginin köşelerden taşmasını önler */
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background-color: #fff;
+            color: var(--kurumsal-mavi);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--kurumsal-kenarlik);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Buton Tasarımları */
+        .btn {
+            border-radius: 0.375rem;
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--kurumsal-mavi);
+            border-color: var(--kurumsal-mavi);
+        }
+
+        .btn-primary:hover {
+            background-color: #0b3a82;
+            border-color: #0b3a82;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        /* Form Elemanları */
+        .form-control {
+            border-radius: 0.375rem;
+            border: 1px solid var(--kurumsal-kenarlik);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--kurumsal-acik-mavi);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Accordion Yapısı */
+        .accordion .card {
+            border: 1px solid var(--kurumsal-kenarlik);
+            box-shadow: none;
+        }
+
+        .accordion .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 0;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        
+        .accordion .card-header:hover {
+            background-color: var(--kurumsal-gri);
+            color: var(--kurumsal-mavi);
+        }
+        
+        .accordion .card-header .accordion-icon::before {
+            font-family: 'Font Awesome 5 Free';
+            content: "\f078"; /* Chevron Down */
+            font-weight: 900;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion .card-header[aria-expanded="true"] .accordion-icon::before {
+            transform: rotate(-180deg);
+        }
+        
+        .accordion .card-body {
+            border-top: 1px solid var(--kurumsal-kenarlik);
+        }
+        
+        /* Tab-Nav Yapısı */
+        .nav-tabs {
+            border-bottom: 2px solid var(--kurumsal-kenarlik);
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: -2px;
+            padding: 0.75rem 1.25rem;
+        }
+
+        .nav-tabs .nav-link:hover {
+             border-bottom-color: var(--kurumsal-acik-mavi);
+             color: var(--kurumsal-acik-mavi);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--kurumsal-mavi);
+            background-color: transparent;
+            border-bottom: 2px solid var(--kurumsal-mavi);
+        }
+
+        /* DataTables Özelleştirmesi */
+        .dataTables_wrapper {
+            padding-top: 1rem;
+        }
+
+        /* Yükleniyor İkonu */
+        #loadingSpinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1050; /* Modal'ın üstünde */
+            font-size: 3rem;
+            color: var(--kurumsal-mavi);
+            display: none; /* Varsayılan olarak gizli */
+        }
+
+        /* Modal Detay Tablosu */
+        #detayModalTable {
+            width: 100%;
+        }
+        #detayModalTable th, #detayModalTable td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--kurumsal-kenarlik);
+        }
+        #detayModalTable th {
+            background-color: var(--kurumsal-gri);
+            font-weight: 600;
+            width: 30%;
+        }
+
+        /* DataTable Satır Tıklama */
+        table.dataTable tbody tr {
+            cursor: pointer;
+        }
+
+        /* DEĞİŞTİ: JSON Viewer Özelleştirmesi (json-viewer-js için güncellendi) */
+        /* DEĞİŞTİ: Stiller json-formatter-js için geri güncellendi */
+        /* DEĞİŞTİ: Kütüphane kaldırıldı, stiller <pre> etiketine göre güncellendi */
+        div#json-viewer-container {
+            max-height: 70vh; /* Yüksekliği kısıtla */
+            overflow: auto; /* Dikey ve yatay kaydırma */
+            border: 1px solid var(--kurumsal-kenarlik);
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 0.375rem;
+        }
+        div#json-viewer-container pre {
+            font-size: 0.85rem;
+            margin: 0;
+            white-space: pre; /* Yatay kaydırmayı etkinleştirir */
+        }
+        /* Kaldırılan kütüphaneye ait stiller silindi */
+        /* .json-formatter-row .json-formatter-key { ... } */
+        /* .json-formatter-row .json-formatter-string { ... } */
+        /* .json-formatter-row .json-formatter-number { ... } */
+        /* .json-formatter-row .json-formatter-boolean { ... } */
+        /* .json-formatter-row .json-formatter-null { ... } */
+        /* .json-formatter-row a > .json-formatter-preview-text { ... } */
+        /* .json-formatter-row > a { ... } */
+
+    </style>
+
+    <!-- Gerekli JS Kütüphaneleri (HEAD'e taşındı) -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    
+    <!-- DEĞİŞTİ: Eski JSON Viewer JS (Kaldırıldı) -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-json-viewer/1.4.0/jquery.json-viewer.min.js"></script> -->
+    
+    <!-- Bootstrap 4 -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Litepicker (Tarih Seçici) -->
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <!-- DataTables ve Eklentileri -->
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+    <!-- Column Visibility (Sütun Görünürlüğü) butonu için -->
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.colVis.min.js"></script> 
+    
+    <!-- DEĞİŞTİ: JSON Kütüphanesi JS'i kaldırıldı -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/json-formatter-js/2.3.4/json-formatter.min.js"></script> -->
+    
+    <!-- DataTables Responsive JS (KAPATILDI) -->
+    <!-- <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script> -->
+    <!-- <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script> -->
+
+</head>
+<body>
+    <!-- Yükleniyor Spinner -->
+    <div id="loadingSpinner">
+        <i class="fas fa-spinner fa-spin"></i>
+    </div>
+
+    <div class="container-fluid my-4">
+        <!-- SAYFA BAŞLIĞI VE KULLANICI BİLGİSİ -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 id="sayfa-adi">Kalite Kontrol Raporu</h2>
+            <div class="text-muted">
+                <i class="fas fa-user-circle"></i> 
+                <span id="kullanici-kodu">{{Oturum.KullaniciKodu}}</span>
+            </div>
+        </div>
+
+        <!-- FİLTRELER ACCORDION (Güncellendi) -->
+        <div class="accordion" id="filtreAccordion">
+            <div class="card">
+                <div class="card-header" id="filtreHeading" data-toggle="collapse" data-target="#collapseFiltre" aria-expanded="true" aria-controls="collapseFiltre">
+                    <span>
+                        <i class="fas fa-filter mr-2"></i> Filtreleme Seçenekleri
+                    </span>
+                    <span class="accordion-icon"></span>
+                </div>
+                <div id="collapseFiltre" class="collapse show" aria-labelledby="filtreHeading" data-parent="#filtreAccordion">
+                    <div class="card-body">
+                        <form id="filtreForm">
+                            <div class="row">
+                                <!-- Filtreler buraya eklenebilir, şimdilik sadece buton var -->
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="baslangicTarihi">Başlangıç Tarihi</label>
+                                        <input type="text" class="form-control" id="baslangicTarihi" placeholder="Tarih Seçin">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="bitisTarihi">Bitiş Tarihi</label>
+                                        <input type="text" class="form-control" id="bitisTarihi" placeholder="Tarih Seçin">
+                                    </div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <div class="form-group w-100">
+                                        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search mr-1"></i> Raporu Getir</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- İÇERİK ALANI (Raporun yükleneceği yer) -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <!-- Hata Mesajı Alanı -->
+                <div id="hataMesaji" class="alert alert-danger" style="display: none;" role="alert">
+                    Veriler getirilirken bir hata oluştu. Lütfen tekrar deneyin.
+                </div>
+
+                <!-- NAV-TABS (Dinamik olarak yüklenecek) -->
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <!-- Sekmeler JS ile buraya eklenecek -->
+                    <li class="nav-item" role="presentation">
+                        <span class="nav-link disabled text-muted">Raporu getirmek için lütfen filtreleri kullanın.</span>
+                    </li>
+                </ul>
+
+                <!-- TAB-CONTENT (Dinamik olarak yüklenecek) -->
+                <div class="tab-content" id="myTabContent">
+                    <!-- Sekme içerikleri JS ile buraya eklenecek -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detay Modal -->
+    <div class="modal fade" id="detayModal" tabindex="-1" aria-labelledby="detayModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius: 0.5rem;">
+                <div class="modal-header" style="background-color: var(--kurumsal-mavi); color: white;">
+                    <h5 class="modal-title" id="detayModalLabel">Kontrol Detayları</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalSpinner" class="text-center p-4" style="display: none;">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    </div>
+                    <h6>Genel Bilgiler</h6>
+                    <div class="table-responsive mb-3">
+                        <table id="detayModalGenelTable" class="table table-sm table-bordered" style="font-size: 0.9rem;">
+                            <!-- Genel bilgiler buraya eklenecek -->
+                        </table>
+                    </div>
+
+                    <h6>Ölçüm ve Kontroller</h6>
+                    <div class="table-responsive">
+                        <table id="detayModalDetayTable" class="table table-sm table-striped table-bordered" style="font-size: 0.9rem;">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Sıra</th>
+                                    <th>Kontrol Adı</th>
+                                    <th>Sonuç</th>
+                                    <th>Açıklama</th>
+                                    <th>Min</th>
+                                    <th>Max</th>
+                                    <th>Zorunlu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Detaylar buraya eklenecek -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Gerekli JS Kütüphaneleri (HEAD'e taşındı) -->
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script> ... vb ... -->
+
+
+    <script>
+    // ######################################################################
+    // AARO ERP PAGINATION HELPER (varsayilan.html'den alındı)
+    // ######################################################################
+    function fetchAllPaginatedData(options) {
+      return new Promise((resolve, reject) => {
+        // Varsayılan ayarlar (Aaro ERP API'sine uyumlu)
+        const defaultSettings = {
+          method: 'GET', // POST'tan GET'e geri değiştirildi
+          initialParams: {},
+          rateLimitDelay: 200,
+          onProgress: null,
+          pagination: {
+            pageParamName: 'Sayfa',
+            pageSizeParamName: 'SayfaSatirSayisi',
+            pageSize: 100, // Daha küçük bir boyutla başlayalım, 1000 çok olabilir
+            getDataArray: (response) => response.Model,
+            getPaginationInfo: (response) => response.SayfalandirmaBilgisi,
+            hasNextPage: (pInfo) => pInfo.SonrakiSayfaVarMi,
+            getCurrentPage: (pInfo) => pInfo.Sayfa,
+            getTotalPages: (pInfo) => pInfo.ToplamSayfaSayisi,
+            getTotalItems: (pInfo) => pInfo.ToplamSatirSayisi,
+          },
+        };
+
+        // Kullanıcı ayarlarını varsayılanlarla birleştir (iç içe objeler için deep merge)
+        const settings = $.extend(true, {}, defaultSettings, options);
+
+        if (!settings.endpoint || !settings.bearerToken) {
+          const errorMsg = "Zorlu parametreler eksik: 'endpoint' ve 'bearerToken' sağlanmalıdır.";
+          console.error(errorMsg);
+          return reject(errorMsg);
+        }
+
+        let allData = [];
+        let totalItems = 0;
+
+        function fetchPage(pageNumber) {
+          const requestData = $.extend({}, settings.initialParams);
+          requestData[settings.pagination.pageParamName] = pageNumber;
+          requestData[settings.pagination.pageSizeParamName] = settings.pagination.pageSize;
+
+          // POST metodu için JSON.stringify kaldırıldı
+          // const postData = JSON.stringify(requestData);
+
+          $.ajax({
+            url: settings.endpoint,
+            method: settings.method,
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer ' + settings.bearerToken
+              // 'Content-Type': 'application/json' // GET isteği için kaldırıldı
+            },
+            data: requestData // Veri, GET isteği için düz JavaScript objesi olarak gönderiliyor
+          })
+          .done(function(response) {
+            if (!response) {
+                return reject("API'den boş yanıt alındı.");
+            }
+
+            const dataArray = settings.pagination.getDataArray(response);
+            const paginationInfo = settings.pagination.getPaginationInfo(response);
+            
+            if (!dataArray || !paginationInfo) {
+              return reject("Yapılandırma hatası: `getDataArray` veya `getPaginationInfo` fonksiyonları geçerli veri döndürmedi. Lütfen API yanıt yapısını kontrol edin.");
+            }
+
+            allData = allData.concat(dataArray);
+            totalItems = settings.pagination.getTotalItems(paginationInfo);
+
+            if (typeof settings.onProgress === 'function') {
+              settings.onProgress({
+                currentPage: settings.pagination.getCurrentPage(paginationInfo),
+                totalPages: settings.pagination.getTotalPages(paginationInfo),
+                fetchedItems: allData.length,
+                totalItems: totalItems
+              });
+            }
+
+            if (settings.pagination.hasNextPage(paginationInfo)) {
+              setTimeout(() => {
+                fetchPage(pageNumber + 1);
+              }, settings.rateLimitDelay);
+            } else {
+              console.log(`İşlem tamamlandı. Toplam ${allData.length} kayıt çekildi.`);
+              resolve(allData);
+            }
+          })
+          .fail(function(jqXHR, textStatus, errorThrown) {
+            const errorDetails = {
+              status: jqXHR.status,
+              statusText: jqXHR.statusText,
+              responseText: jqXHR.responseText
+            };
+            console.error("API isteği başarısız oldu:", errorDetails);
+            reject(errorDetails);
+          });
+        }
+
+        fetchPage(1); // İlk sayfadan başlat
+      });
+    }
+
+
+    // ######################################################################
+    // TÜM UYGULAMA MANTIĞI - TEK BİR $(document).ready() BLOKU
+    // ######################################################################
+    $(document).ready(function() {
+        
+        // Aaro nesnesinden bilgileri loglama ve sayfaya yazma
+        if (Aaro && Aaro.Oturum) {
+            console.log("Giriş yapan kullanıcı:", Aaro.Oturum.KullaniciAdi);
+            // Aaro nesnesindeki verileri kullanarak sayfayı doldur
+            $('#sayfa-adi').text(Aaro.SayfaAdi);
+            $('#kullanici-kodu').text(Aaro.Oturum.KullaniciKodu);
+        }
+
+        // Bearer Token (Aaro nesnesinden dinamik olarak alınıyor)
+        const bearerToken = (Aaro && Aaro.Oturum && Aaro.Oturum.Token) ? Aaro.Oturum.Token : "";
+        const apiEndpoint = "https://erp.aaro.com.tr/api/KaliteKontrolBaslik/DetayliListe";
+
+        // YENİ: API'den gelen ham veriyi tutmak için
+        let rawApiData = [];
+
+        // Yükleniyor fonksiyonları
+        function showLoading() {
+            $('#loadingSpinner').show();
+            $('#filtreForm button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Getiriliyor...');
+        }
+
+        function hideLoading() {
+            $('#loadingSpinner').hide();
+            $('#filtreForm button[type="submit"]').prop('disabled', false).html('<i class="fas fa-search mr-1"></i> Raporu Getir');
+        }
+
+        // Hata gösterme
+        function showError(message) {
+            $('#hataMesaji').text(message || "Veriler getirilirken bir hata oluştu.").show();
+        }
+        function hideError() {
+            $('#hataMesaji').hide();
+        }
+
+        // Tarih formatlayıcı
+        function formatTarih(tarihString) {
+            if (!tarihString || tarihString.startsWith("0001-")) {
+                return "-";
+            }
+            try {
+                const tarih = new Date(tarihString);
+                return tarih.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch (e) {
+                return tarihString;
+            }
+        }
+        
+        // Durum formatlayıcı (Örnek, değerleri API'ye göre düzenleyin)
+        function formatKaliteDurum(durum) {
+            switch(durum) {
+                case 1: return '<span class="badge badge-success">Kabul</span>';
+                case 2: return '<span class="badge badge-warning">Şartlı Kabul</span>';
+                case 3: return '<span class="badge badge-danger">Red</span>';
+                default: return '<span class="badge badge-secondary">Belirsiz</span>';
+            }
+        }
+        
+        function formatOnayDurum(durum) {
+            switch(durum) {
+                case 0: return '<span class="badge badge-secondary">Onaylanmadı</span>';
+                case 1: return '<span class="badge badge-success">Onaylandı</span>';
+                default: return '<span class="badge badge-light">N/A</span>';
+            }
+        }
+
+        // Raporu Getir Butonu Olayı
+        $('#filtreForm').on('submit', function(e) {
+            e.preventDefault();
+            getQualityControlReport();
+        });
+
+        // YENİ: Modal'daki sonuç çıkarma mantığını tablo için metin döndüren bir yardımcı fonksiyona alalım
+        function getSonucFromDetayForTable(detay) {
+            let sonuc = "-";
+            if (detay.KaliteKontrolDetay) {
+                // Not: Bu mantık, modal'daki (showDetailsInModal) mantıkla aynı olmalıdır, 
+                // sadece icon yerine metin döndürür.
+                const kkd = detay.KaliteKontrolDetay;
+
+                // API yanıtına göre en spesifik olanı önce kontrol edelim
+                if (kkd.DogruYanlisSonuc === true) {
+                    return 'Doğru';
+                }
+                if (kkd.DogruYanlisSonuc === false && detay.TipID !== 160005) {
+                    // Sayısal olmayan bir alan için 'false' geldiyse 'Yanlış' kabul edelim.
+                    return 'Yanlış'; 
+                }
+                if (kkd.SayisalSonuc !== null) {
+                    return kkd.SayisalSonuc;
+                }
+                if (kkd.MetinSonuc !== null && kkd.MetinSonuc !== "") {
+                    return kkd.MetinSonuc;
+                }
+                if (kkd.TarihSonuc !== null && !kkd.TarihSonuc.startsWith("0001-")) {
+                    return formatTarih(kkd.TarihSonuc);
+                }
+                
+                // Hiçbirine uymuyorsa ve false ise (örn: Sayısal 0)
+                if (kkd.DogruYanlisSonuc === false) {
+                    return 'Yanlış';
+                }
+
+            }
+            return sonuc; // Kontrol yapılmadı veya veri yok
+        }
+
+
+        // Ana Rapor Getirme Fonksiyonu
+        function getQualityControlReport() {
+            showLoading();
+            hideError();
+
+            // Token kontrolü
+            if (!bearerToken || bearerToken === ":)") {
+                showError("Geçerli bir kullanıcı oturumu bulunamadı (Token eksik). Lütfen tekrar giriş yapın.");
+                hideLoading();
+                return;
+            }
+
+            // Mevcut DataTables'ı yok et (varsa)
+            $('.datatable-dynamic').each(function() {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().destroy();
+                }
+            });
+            $('#myTab').empty().html('<li class="nav-item"><span class="nav-link disabled text-muted">Rapor yükleniyor...</span></li>');
+            $('#myTabContent').empty();
+
+            const filtreParams = {
+                // Filtreleri buradan ekleyin, örn:
+                // TarihBas: $('#baslangicTarihi').val() || null,
+                // TarihBit: $('#bitisTarihi').val() || null,
+            };
+
+            fetchAllPaginatedData({
+                bearerToken: bearerToken,
+                endpoint: apiEndpoint,
+                // method: 'POST', // Hata bu satırdaydı, kaldırıldı. Artık varsayılan (GET) kullanılacak.
+                initialParams: filtreParams,
+                onProgress: (progress) => {
+                    const yuzde = Math.round((progress.fetchedItems / progress.totalItems) * 100);
+                    console.log(`İlerleme: ${yuzde}% (${progress.fetchedItems}/${progress.totalItems})`);
+                }
+            })
+            .then(tumRaporBasliklari => {
+                // YENİ: Ham veriyi sakla
+                rawApiData = tumRaporBasliklari;
+
+                if (!tumRaporBasliklari || tumRaporBasliklari.length === 0) {
+                    $('#myTab').html('<li class="nav-item"><span class="nav-link disabled text-warning">Filtrelere uygun veri bulunamadı.</span></li>');
+                    
+                    // YENİ: Veri olmasa bile JSON sekmesini ekle
+                    addJsonTab(rawApiData);
+                    
+                    hideLoading();
+                    return;
+                }
+                
+                // 1. Tüm KaliteKontrolleri öğelerini tek bir listeye alalım
+                let tumKontroller = [];
+                tumRaporBasliklari.forEach(baslik => {
+                    if (baslik.KaliteKontrolleri) {
+                        tumKontroller = tumKontroller.concat(baslik.KaliteKontrolleri);
+                    }
+                });
+
+                // 1.5. YENİ: Tüm dinamik sütun başlıklarını (Ölçüm ve Kontroller) bul
+                // Bu sütunlar tüm sekmelerde aynı sırada olmalı, bu yüzden önce tüm veriyi taramalıyız.
+                const dynamicColumnMap = new Map();
+                tumKontroller.forEach(kontrol => {
+                    if (kontrol.KaliteKontrolTurDetaylari) { 
+                        kontrol.KaliteKontrolTurDetaylari.forEach(detay => {
+                            const title = detay.KaliteKontrolTurDetayAdi;
+                            if (title) { // Boş başlıkları atla
+                                // Sütun adı (title) ve veri anahtarı (key) oluştur
+                                // Anahtarın (data property) JS'te güvenli olması için özel karakterleri temizle
+                                const safeKey = 'col_' + title.replace(/[^a-zA-Z0-9_]/g, '_'); 
+                                if (!dynamicColumnMap.has(title)) { // Başlığa göre benzersiz olmalı
+                                    dynamicColumnMap.set(title, { title: title, key: safeKey });
+                                }
+                            }
+                        });
+                    }
+                });
+                const allDynamicColumns = Array.from(dynamicColumnMap.values());
+                console.log("Dinamik Sütunlar bulundu:", allDynamicColumns);
+
+
+                // 2. Bu listeyi KaliteKontrolTurAdi'na göre gruplayalım VE VERİYİ DÜZLEŞTİRELİM
+                const groupedData = tumKontroller.reduce((acc, kontrol) => {
+                    const turAdi = kontrol.KaliteKontrolTurAdi || "Diğer";
+                    if (!acc[turAdi]) {
+                        acc[turAdi] = [];
+                    }
+
+                    // YENİ: Veriyi düzleştir (Ölçüm detaylarını ana nesneye özellik olarak ekle)
+                    if (kontrol.KaliteKontrolTurDetaylari) {
+                        kontrol.KaliteKontrolTurDetaylari.forEach(detay => {
+                            const title = detay.KaliteKontrolTurDetayAdi;
+                            // Sadece az önce bulduğumuz haritadaki geçerli sütunları işle
+                            if (title && dynamicColumnMap.has(title)) {
+                                const safeKey = dynamicColumnMap.get(title).key;
+                                // Helper fonksiyonu kullanarak sonucu al ve ata
+                                kontrol[safeKey] = getSonucFromDetayForTable(detay);
+                            }
+                        });
+                    }
+
+                    acc[turAdi].push(kontrol);
+                    return acc;
+                }, {});
+
+                console.log("Gruplanmış ve Düzleştirilmiş Veri:", groupedData);
+
+                // 3. Sekmeleri ve Tabloları Oluştur (Dinamik sütunları da gönder)
+                createTabsAndTables(groupedData, allDynamicColumns);
+                
+                // 4. YENİ: JSON Sekmesini ekle
+                addJsonTab(rawApiData); 
+
+                hideLoading();
+            })
+            .catch(hata => {
+                console.error("Rapor çekilirken bir hata oluştu:", hata);
+                showError("API'den veri çekilirken bir hata oluştu. Detaylar için konsolu inceleyin.");
+                hideLoading();
+                $('#myTab').html('<li class="nav-item"><span class="nav-link disabled text-danger">Rapor yüklenemedi.</span></li>');
+            });
+        }
+
+                // Sekmeleri ve Tabloları oluşturan fonksiyon
+        function createTabsAndTables(groupedData, allDynamicColumns) {
+            const $tabContainer = $('#myTab');
+            const $tabContentContainer = $('#myTabContent');
+
+            $tabContainer.empty();
+            $tabContentContainer.empty();
+
+            let index = 0;
+            for (const turAdi in groupedData) {
+                const isActive = (index === 0);
+                const tabId = 'tab-' + turAdi.replace(/[^a-zA-Z0-9]/g, '-'); // ID için güvenli hale getir
+                
+                // Tab Başlığı
+                $tabContainer.append(`
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link ${isActive ? 'active' : ''}" id="${tabId}-tab" data-toggle="tab" href="#${tabId}" role="tab" aria-controls="${tabId}" aria-selected="${isActive}">
+                            ${turAdi} <span class="badge badge-pill badge-primary">${groupedData[turAdi].length}</span>
+                        </a>
+                    </li>
+                `);
+
+                // Tab İçeriği (DataTable için iskelet)
+                $tabContentContainer.append(`
+                    <div class="tab-pane fade ${isActive ? 'show active' : ''}" id="${tabId}" role="tabpanel" aria-labelledby="${tabId}-tab">
+                        <div class="table-responsive pt-3">
+                            <table id="table-${tabId}" class="table table-striped table-bordered datatable-dynamic" style="width:100%">
+                                <!-- Başlıklar JS ile eklenecek -->
+                            </table>
+                        </div>
+                    </div>
+                `);
+
+                // Sütun Tanımları
+                let columns = [
+                    { data: 'KaliteKontrolID', title: 'Kontrol ID' },
+                    { data: 'Tarih', title: 'Tarih', render: formatTarih },
+                    { data: 'KartKodu', title: 'Kart Kodu' },
+                    { data: 'Aciklama', title: 'Açıklama', defaultContent: '-' },
+                    { data: 'AciklamaOtomatik', title: 'Oto. Açıklama', defaultContent: '-' },
+                    { data: 'TestMiktar', title: 'Test Miktarı' },
+                    { data: 'KontrolMiktar', title: 'Kontrol Miktarı' },
+                    { data: 'KaliteKontrolDurum', title: 'Durum', render: formatKaliteDurum },
+                    
+                    // Varsayılan olarak gizli sütunlar (Statik olanlar)
+                    { data: 'KaliteKontrolTurID', title: 'Tur ID' },
+                    { data: 'KaliteKontrolBaslikID', title: 'Başlık ID' },
+                    { data: 'SubeID', title: 'Şube ID' },
+                    { data: 'SirketID', title: 'Şirket ID' },
+                    { data: 'SeriLotID', title: 'Seri/Lot ID' },
+                    { data: 'SubeKodu', title: 'Şube Kodu' },
+                    { data: 'SubeAdi', title: 'Şube Adı' },
+                    { data: 'SirketKodu', title: 'Şirket Kodu' },
+                    { data: 'SirketAdi', title: 'Şirket Adı' },
+                    { data: 'OlsTar', title: 'Oluşturma Tarihi' },
+                    { data: 'DgsTar', title: 'Değişim Tarihi' },
+                ];
+                
+                // YENİ: Dinamik sütunların ve statik gizli sütunların indekslerini hazırla
+                const staticColumnCount = columns.length; // Statik sütunların bittiği yer (20)
+                let dynamicColumnIndices = [];
+                // YENİ: Statik GÖRÜNÜR sütunların indeksleri
+                let staticVisibleColumnIndices = [0, 1, 2, 3, 4, 5, 6, 7]; // 8. (Durum) sütununu da ekledim.
+                let staticHiddenColumnIndices = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]; // 8'den başlıyor
+
+                // Düzeltme: staticVisibleColumnIndices 0'dan 7'ye olmalı. 8'den sonrası gizli.
+                staticVisibleColumnIndices = [0, 1, 2, 3, 4, 5, 6, 7];
+                staticHiddenColumnIndices = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+
+
+                allDynamicColumns.forEach((dynCol, idx) => {
+                    columns.push({
+                        data: dynCol.key,       // Güvenli anahtar (örn: col_Kalinlik)
+                        title: dynCol.title,    // Orijinal başlık (örn: Kalınlık)
+                        defaultContent: "-"     // Veri yoksa - yaz
+                    });
+                    dynamicColumnIndices.push(staticColumnCount + idx); // Dinamik sütun indekslerini topla (20, 21, 22...)
+                });
+
+                // Gizlenecek sütunların indeksleri (8'den itibaren tümü)
+                let gizliSutunIndeksleri = staticHiddenColumnIndices.concat(dynamicColumnIndices);
+
+
+                // YENİ: "Sütunlar" (colvis) dropdown'ı için butonları dinamik olarak oluştur
+                let colvisButtons = [];
+                // YENİ: İkon HTML'ini bir sabite alalım
+                const iconHtml = '<i class="fas fa-check text-success" style="margin-right: 5px;"></i> ';
+
+                // BÖLÜM 1: Statik GÖRÜNÜR sütunlar (Tarih, Kart Kodu vb.)
+                staticVisibleColumnIndices.forEach(index => {
+                    colvisButtons.push({
+                        // ***************** DEĞİŞİKLİK *****************
+                        // Başlangıçta aktif oldukları için ikonu ve 'active' sınıfını ekle
+                        text: iconHtml + columns[index].title, 
+                        className: 'active', 
+                        // ********************************************
+                        columns: index, // 'init' fonksiyonunun bulması için
+                        action: function (e, dt, node, config) {
+                            let column = dt.column(config.columns);
+                            column.visible(!column.visible());
+                            $(node).toggleClass('active'); // Durumu anında yansıt
+                            
+                            // Yeşil tik ekle/kaldır
+                            $(node).find('i.fa-check').remove(); // Önce varsa kaldır
+                            if ($(node).hasClass('active')) {
+                                $(node).prepend(iconHtml); // Aktifse ekle
+                            }
+
+                            e.stopPropagation(); // Menüyü açık tut
+                        }
+                    });
+                });
+
+                // BÖLÜM 2: Dinamik Sütunlar (Ölçüm ve Kontroller)
+                if (dynamicColumnIndices.length > 0) {
+                    colvisButtons.push({ text: '---', className: 'dt-button-disabled' }); // Ayıraç
+                    
+                    // "Tümünü" butonu
+                    colvisButtons.push({
+                        text: 'Ölçüm ve Kontroller (Tümü)',
+                        columns: dynamicColumnIndices, // 'init' ve 'action' için
+                        action: function (e, dt, node, config) {
+                            // Mevcut durumu, *tüm* sütunların görünür olup olmadığına göre belirle
+                            let allVisible = dt.columns(config.columns).visible().toArray().every(vis => vis === true);
+                            let newVisibility = !allVisible;
+                            
+                            // Tüm ilgili sütunların görünürlüğünü ayarla
+                            dt.columns(config.columns).visible(newVisibility);
+                            
+                            // Bu (Tümü) butonun durumunu güncelle
+                            $(node).toggleClass('active', newVisibility);
+                            $(node).find('i.fa-check').remove();
+                            if (newVisibility) {
+                                $(node).prepend(iconHtml);
+                            }
+                            
+                            // Diğer alt butonları da güncelle (menü kapanıp açılmadan)
+                            // Not: DataTables API'sini kullanarak config'den butonları bulmak daha sağlam
+                            let allButtonConfigs = dt.buttons()[3].inst.c.buttons; // 3. buton 'collection'
+                            let buttonNodes = $(node).closest('.dropdown-menu').find('.dt-button');
+
+                            config.columns.forEach(colIndex => {
+                                // Bu sütuna karşılık gelen butonu config'de bul
+                                let btnIndex = allButtonConfigs.findIndex(b => b.columns === colIndex);
+                                if (btnIndex > -1) {
+                                    let btnNode = buttonNodes.eq(btnIndex);
+                                    $(btnNode).toggleClass('active', newVisibility);
+                                    $(btnNode).find('i.fa-check').remove();
+                                    if (newVisibility) {
+                                        $(btnNode).prepend(iconHtml);
+                                    }
+                                }
+                            });
+
+                            e.stopPropagation(); // Menüyü açık tut
+                        }
+                    });
+
+                    // Dinamik sütunlar için tek tek toggle butonları
+                    dynamicColumnIndices.forEach(index => {
+                        colvisButtons.push({
+                            text: columns[index].title, // Başlangıçta ikon YOK
+                            columns: index,
+                            action: function (e, dt, node, config) {
+                                let column = dt.column(config.columns);
+                                column.visible(!column.visible());
+                                $(node).toggleClass('active'); 
+                                
+                                $(node).find('i.fa-check').remove(); 
+                                if ($(node).hasClass('active')) {
+                                    $(node).prepend(iconHtml); 
+                                }
+
+                                // "Tümü" butonunun durumunu da kontrol et
+                                let allDynamicVisible = dt.columns(dynamicColumnIndices).visible().toArray().every(vis => vis === true);
+                                let allButtonConfigIndex = dt.buttons()[3].inst.c.buttons.findIndex(b => b.text === 'Ölçüm ve Kontroller (Tümü)');
+                                if (allButtonConfigIndex > -1) {
+                                    let allButtonNode = $(node).closest('.dropdown-menu').find('.dt-button').eq(allButtonConfigIndex);
+                                    allButtonNode.toggleClass('active', allDynamicVisible);
+                                    allButtonNode.find('i.fa-check').remove();
+                                    if (allDynamicVisible) {
+                                        allButtonNode.prepend(iconHtml);
+                                    }
+                                }
+
+                                e.stopPropagation(); 
+                            }
+                        });
+                    });
+                }
+                
+                // BÖLÜM 3: Statik GİZLİ sütunlar (Tur ID, Şube ID vb.)
+                if (staticHiddenColumnIndices.length > 0) {
+                    colvisButtons.push({ text: '---', className: 'dt-button-disabled' }); // Ayıraç
+
+                    staticHiddenColumnIndices.forEach(index => {
+                        colvisButtons.push({
+                            text: columns[index].title, // Başlangıçta ikon YOK
+                            columns: index, // 'init' fonksiyonunun bulması için
+                            action: function (e, dt, node, config) {
+                                let column = dt.column(config.columns);
+                                column.visible(!column.visible());
+                                $(node).toggleClass('active'); // Durumu anında yansıt
+                                
+                                // Yeşil tik ekle/kaldır
+                                $(node).find('i.fa-check').remove(); // Önce varsa kaldır
+                                if ($(node).hasClass('active')) {
+                                    $(node).prepend(iconHtml); // Aktifse ekle
+                                }
+
+                                e.stopPropagation(); // Menüyü açık tut
+                            }
+                        });
+                    });
+                }
+
+                // DataTable'ı Başlat
+                let dtInstance = $(`#table-${tabId}`).DataTable({
+                    data: groupedData[turAdi],
+                    columns: columns,
+                    columnDefs: [
+                        { "visible": false, "targets": gizliSutunIndeksleri }
+                    ],
+                    // ************************************************
+                    // DEĞİŞİKLİK: 'responsive' özelliği kapatıldı.
+                    // ************************************************
+                    responsive: false,
+                    language: {
+                        url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Turkish.json"
+                    },
+                    dom: 'Bfrtip',
+                    buttons: [
+                        { 
+                            extend: 'copy', 
+                            text: '<i class="fas fa-copy"></i> Kopyala', 
+                            className: 'btn-sm',
+                            exportOptions: {
+                                columns: ':visible' // Sadece görünür sütunları kopyala
+                            }
+                        },
+                        { 
+                            extend: 'excel', 
+                            text: '<i class="fas fa-file-excel"></i> Excel', 
+                            className: 'btn-sm',
+                            exportOptions: {
+                                columns: ':visible' // Sadece görünür sütunları dışa aktar
+                            }
+                        },
+                        
+                        // ***************** DEĞİŞİKLİK *****************
+                        // Yazdırma butonu güncellendi (Başlık, Yatay A4 ve Sadece Görünür Sütunlar için)
+                        { 
+                            extend: 'print', 
+                            text: '<i class="fas fa-print"></i> Yazdır', 
+                            className: 'btn-sm',
+                            title: turAdi, // Yazdırma belgesinin başlığını ayarlar
+                            exportOptions: {
+                                columns: ':visible' // Sadece görünür sütunları yazdır
+                            },
+                            customize: function ( win ) {
+                                // Yazdırma için kafa (head) etiketine stil ekle
+                                $(win.document.head).append(
+                                    '<style>' +
+                                    // Sayfayı yatay (landscape) A4 olarak ayarla ve kenar boşluklarını azalt
+                                    '@page { size: landscape; margin: 1cm; }' + 
+                                    // Font boyutunu küçült
+                                    'body { font-size: 9pt; font-family: "Inter", sans-serif; }' + 
+                                    'table { width: 100% !important; border-collapse: collapse; }' + 
+                                    // YENİ: Tablo hücre padding'ini azalt
+                                    'table th, table td { padding: 4px 6px !important; }' + 
+                                    // Yazdırma başlığı için özel stil (biraz daha kompakt)
+                                    'h1.print-title { text-align: center; font-size: 1.3rem; margin-bottom: 15px; font-weight: 600; }' + 
+                                    '</style>'
+                                );
+
+                                // DataTables'ın varsayılan başlığını (eğer varsa) kaldır
+                                $(win.document.body).find('h1').first().remove(); 
+                                
+                                // Gövdenin (body) en başına özel sekme başlığını (turAdi) ekle
+                                $(win.document.body)
+                                    .prepend(
+                                        // 'turAdi' değişkeni döngüden (scope) geliyor
+                                        '<h1 class="print-title">' + turAdi + ' Raporu</h1>' 
+                                    );
+                            }
+                        },
+                        // ********************************************
+
+                        // YENİ: Standart 'colvis' yerine dinamik 'collection' butonu
+                        {
+                            extend: 'collection',
+                            text: '<i class="fas fa-columns"></i> Sütunlar',
+                            className: 'btn-sm',
+                            buttons: colvisButtons, // Burada dinamik olarak oluşturduğumuz listeyi kullanıyoruz
+                            
+                            // YENİ: init fonksiyonu, menü açılmadan önce 'active' durumlarını ayarlar
+                            init: function(api, node, config) {
+                                // Bootstrap 'show' event'ini dinle (menü açıldığında)
+                                $(node).on('show.bs.dropdown', function () {
+                                    // Sadece 'show.bs.dropdown' olay dinleyicisi bırakıldı.
+                                    
+                                    // Menüdeki düğme DOM öğelerini al
+                                    // Bazen DOM hemen güncellenmez, küçük bir gecikme ekleyelim
+                                    setTimeout(() => {
+                                        let buttonNodes = $(this).closest('.dt-buttons').find('.dropdown-menu .dt-button');
+                                        
+                                        // Yapılandırmadaki (config) düğmeleri döngüye al
+                                        config.buttons.forEach((buttonConfig, buttonIndex) => {
+                                            // İlgili DOM düğmesini bul
+                                            let buttonNode = buttonNodes.eq(buttonIndex); 
+                                            // İkonu her zaman önce temizle
+                                            $(buttonNode).find('i.fa-check').remove();
+
+                                            // Sadece 'columns' özelliği olanları (bizim colvis'lerimiz) işle
+                                            if (buttonConfig.columns !== undefined) {
+                                                let isVisible;
+                                                
+                                                if (Array.isArray(buttonConfig.columns)) {
+                                                    // Bu "Tümü" butonu
+                                                    isVisible = api.columns(buttonConfig.columns).visible().toArray().every(vis => vis === true);
+                                                } else {
+                                                    // Bu tek bir sütun butonu
+                                                    isVisible = api.column(buttonConfig.columns).visible();
+                                                }
+                                                
+                                                // Görünürlüğe göre 'active' sınıfını ve ikonu ayarla
+                                                if (isVisible) {
+                                                    $(buttonNode).addClass('active');
+                                                    $(buttonNode).prepend(iconHtml); // İkonu ekle
+                                                } else {
+                                                    $(buttonNode).removeClass('active');
+                                                }
+                                            }
+                                        });
+                                    }, 10); // 10ms gecikme
+                                });
+                            }
+                        }
+                    ],
+                    destroy: true // Yeniden oluşturma için
+                });
+
+                // Satır Tıklama Olayı (Modal'ı açmak için)
+                $(`#table-${tabId} tbody`).on('click', 'tr', function () {
+                    let rowData = dtInstance.row(this).data();
+                    if (rowData) {
+                        showDetailsInModal(rowData);
+                    }
+                });
+
+                index++;
+            }
+
+            // DataTables butonlarının stilini düzelt (Bootstrap 4 için)
+            $('.dt-buttons .btn').removeClass('btn-secondary').addClass('btn-outline-secondary');
+        }
+
+        // DEĞİŞTİ: JSON Veri Sekmesini Ekleyen Fonksiyon (json-viewer-js kullan)
+        // DEĞİŞTİ: Fonksiyon json-formatter-js kullanacak şekilde geri güncellendi
+        // DEĞİŞTİ: Kütüphanesiz, JSON.stringify ve <pre> kullan
+        function addJsonTab(data) {
+            const $tabContainer = $('#myTab');
+            const $tabContentContainer = $('#myTabContent'); // DEĞİŞTİ: myDuy -> myTabContent
+
+            // 1. Tab Başlığını Ekle
+            $tabContainer.append(`
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="tab-json-tab" data-toggle="tab" href="#tab-json" role="tab" aria-controls="tab-json" aria-selected="false">
+                        <i class="fas fa-code mr-1"></i> JSON Verisi
+                    </a>
+                </li>
+            `);
+
+            // 2. Tab İçeriğini Ekle (div#json-viewer-container hala kullanılıyor)
+            $tabContentContainer.append(`
+                <div class="tab-pane fade" id="tab-json" role="tabpanel" aria-labelledby="tab-json-tab">
+                    <div class="p-3">
+                        <div id="json-viewer-container"></div>
+                    </div>
+                </div>
+            `);
+
+            // 3. JSON Görüntüleyiciyi Başlat (Kütüphane yok, JSON.stringify kullanılıyor)
+            try {
+                const $container = $('#json-viewer-container');
+                $container.empty(); // Önce temizle
+
+                if (data && data.length > 0) {
+                    // JSON'u 2 boşlukla güzel formatla
+                    const formattedJson = JSON.stringify(data, null, 2);
+                    // <pre> etiketi oluşturup içine .text() ile ekle (Güvenlik için)
+                    const $pre = $('<pre></pre>').text(formattedJson);
+                    $container.append($pre);
+                } else {
+                    $container.text('Görüntülenecek JSON verisi bulunamadı.');
+                }
+            } catch (e) {
+                console.error("JSON Görüntüleyici başlatılamadı:", e);
+                $('#json-viewer-container').text('JSON verisi işlenirken bir hata oluştu: ' + e.message);
+            }
+        }
+
+
+        // Detayları Modal'da Gösterme Fonksiyonu
+        function showDetailsInModal(rowData) {
+            console.log("Modal için satır verisi:", rowData);
+            
+            // Modal'ı temizle
+            $('#detayModalGenelTable').empty();
+            $('#detayModalDetayTable tbody').empty();
+            $('#detayModalLabel').text(`Kontrol Detayları (ID: ${rowData.KaliteKontrolID})`);
+
+            // Genel Bilgiler Tablosu
+            const $genelTable = $('#detayModalGenelTable');
+            $genelTable.append(`
+                <tr><th>Kontrol Türü</th><td>${rowData.KaliteKontrolTurAdi || '-'}</td></tr>
+                <tr><th>Kontrol Tarihi</th><td>${formatTarih(rowData.Tarih)}</td></tr>
+                <tr><th>Kart Kodu</th><td>${rowData.KartKodu || '-'}</td></tr>
+                <tr><th>Açıklama</th><td>${rowData.Aciklama || '-'}</td></tr>
+                <tr><th>Otomatik Açıklama</th><td>${rowData.AciklamaOtomatik || '-'}</td></tr>
+                <tr><th>Durum / Onay</th><td>${formatKaliteDurum(rowData.KaliteKontrolDurum)} / ${formatOnayDurum(rowData.OnayDurum)}</td></tr>
+            `);
+
+            // Detay (Ölçüm) Tablosu
+            const $detayTableBody = $('#detayModalDetayTable tbody');
+            if (rowData.KaliteKontrolTurDetaylari && rowData.KaliteKontrolTurDetaylari.length > 0) {
+                rowData.KaliteKontrolTurDetaylari.forEach(detay => {
+                    let sonuc = "-";
+                    // TipID'ye göre hangi sonucun gösterileceğine karar ver
+                    // 160004: Metin/Liste, 160005: Sayısal, 160007: Liste
+                    // Bu TipID'ler sizin API dokümantasyonunuza göre değişebilir
+                    // Örnek yanıttan TipID'lere bakarak bir mantık kuralım:
+                    // TipID 160005 (Sayısal) -> SayisalSonuc
+                    // TipID 160004 (Metin) -> MetinSonuc
+                    // DogruYanlisSonuc için ayrı bir TipID olabilir veya 160004 içinde yönetiliyor olabilir.
+                    
+                    if (detay.KaliteKontrolDetay) {
+                        if (detay.TipID === 160005) { // Sayısal
+                            sonuc = detay.KaliteKontrolDetay.SayisalSonuc !== null ? detay.KaliteKontrolDetay.SayisalSonuc : "-";
+                        } else if (detay.TipID === 160004) { // Metin
+                            sonuc = detay.KaliteKontrolDetay.MetinSonuc || "-";
+                        }
+                        
+                        // DogruYanlisSonuc'u da kontrol edelim (eğer varsa)
+                        if (detay.KaliteKontrolDetay.DogruYanlisSonuc === true) {
+                            sonuc = '<i class="fas fa-check text-success"></i> (Doğru)';
+                        } else if (detay.KaliteKontrolDetay.DogruYanlisSonuc === false && detay.TipID !== 160005) { // Sayısal 0 ise false görünmesin
+                             // sonuc = '<i class="fas fa-times text-danger"></i> (Yanlış)';
+                             // Not: API'den gelen 'false' değeri, 'Doğru/Yanlış' tipi bir soru için mi yoksa sadece 'değer yok' anlamında mı? 
+                             // Gelen yanıtta DogruYanlisSonuc: false ve MetinSonuc: "" aynı anda var.
+                             // Bu alanı yorumda bırakıyorum, mantığınıza göre açabilirsiniz.
+                        }
+                    } else {
+                        sonuc = "<span class='text-muted'>Kontrol yapılmadı</span>";
+                    }
+
+
+                    $detayTableBody.append(`
+                        <tr>
+                            <td>${detay.Sira}</td>
+                            <td>${detay.KaliteKontrolTurDetayAdi}</td>
+                            <td><strong>${sonuc}</strong></td>
+                            <td>${detay.Aciklama || '-'}</td>
+                            <td>${detay.Min}</td>
+                            <td>${detay.Max}</td>
+                            <td>${detay.ZorunluMu ? '<i class="fas fa-check text-danger"></i>' : '-'}</td>
+                        </tr>
+                    `);
+                });
+            } else {
+                $detayTableBody.append('<tr><td colspan="7" class="text-center">Bu kontrol için ölçüm detayı bulunmamaktadır.</td></tr>');
+            }
+
+            // Modal'ı göster
+            $('#detayModal').modal('show');
+        }
+
+        // Litepicker Başlatma (Tarih Seçiciler)
+        new Litepicker({
+            element: document.getElementById('baslangicTarihi'),
+            singleMode: true,
+            allowRepick: true,
+            format: 'YYYY-MM-DD',
+            lang: 'tr-TR',
+            buttonText: {
+                previousMonth: `<i class="fas fa-chevron-left"></i>`,
+                nextMonth: `<i class="fas fa-chevron-right"></i>`,
+                apply: 'Uygula',
+                cancel: 'İptal',
+            }
+        });
+
+        new Litepicker({
+            element: document.getElementById('bitisTarihi'),
+            singleMode: true,
+            allowRepick: true,
+            format: 'YYYY-MM-DD',
+            lang: 'tr-TR',
+            buttonText: {
+                previousMonth: `<i class="fas fa-chevron-left"></i>`,
+                nextMonth: `<i class="fas fa-chevron-right"></i>`,
+                apply: 'Uygula',
+                cancel: 'İptal',
+            }
+        });
+
+    }); // $(document).ready sonu
+    </script>
+</body>
+</html>
