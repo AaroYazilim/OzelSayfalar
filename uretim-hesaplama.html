@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Üretim Hesaplama Aracı | AARO</title>
+
+    <!-- Yazı Tipleri ve İkonlar -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Bootstrap 5 Tasarım Çerçevesi -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tom Select -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Renk Paleti ve Tasarım Değişkenleri */
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --primary-color: #2563eb;
+            /* Kraliyet Mavisi */
+            --primary-hover: #1d4ed8;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --card-radius: 16px;
+            --input-radius: 10px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-highlight: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Header --- */
+        .app-header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 0;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .brand-title {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* --- Cards --- */
+        .custom-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .custom-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header-styled {
+            background: transparent;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .card-body-styled {
+            padding: 1.5rem;
+        }
+
+        /* --- Form Elements --- */
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: var(--input-radius);
+            border: 1px solid var(--border-color);
+            padding: 0.65rem 0.85rem;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #f9fafb;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        /* --- Buttons --- */
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--input-radius);
+            font-weight: 600;
+            transition: all 0.2s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary-custom:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-highlight);
+        }
+
+        .btn-primary-custom:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- Dashboard Widgets --- */
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--card-radius);
+            padding: 1.25rem;
+            text-align: center;
+            height: 100%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1.2;
+        }
+
+        .stat-input-wrapper input {
+            font-family: 'Inter', sans-serif;
+            color: var(--primary-color);
+        }
+
+        /* --- Table --- */
+        .table-rounded {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.95rem;
+        }
+
+        .table-rounded th {
+            background-color: #f9fafb;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-rounded td {
+            background-color: #fff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            color: var(--text-main);
+        }
+
+        .table-rounded tr:last-child td {
+            border-bottom: none;
+        }
+
+        .measure-badge {
+            font-family: 'Menlo', monospace;
+            background-color: #eff6ff;
+            color: var(--primary-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* --- Timeline Steps --- */
+        .timeline-container {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline-step {
+            position: relative;
+            padding: 0 0 2rem 2.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-step:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            z-index: 2;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .timeline-connector {
+            position: absolute;
+            left: 17px;
+            top: 36px;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+            z-index: 1;
+        }
+
+        .timeline-step:last-child .timeline-connector {
+            display: none;
+        }
+
+        /* States */
+        .timeline-step.active .timeline-marker {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .timeline-step.success .timeline-marker {
+            border-color: var(--success-color);
+            background: var(--success-color);
+            color: #fff;
+        }
+
+        .timeline-step.error .timeline-marker {
+            border-color: var(--danger-color);
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        .timeline-content h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .timeline-content p {
+            margin: 4px 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .timeline-step:hover .timeline-content h6 {
+            color: var(--primary-color);
+        }
+
+        /* --- JSON Viewer --- */
+        pre.json-view {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: var(--card-radius);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        .string {
+            color: #a5d6ff;
+        }
+
+        .number {
+            color: #fca5a5;
+        }
+
+        .boolean {
+            color: #6ee7b7;
+        }
+
+        .null {
+            color: #d1d5db;
+        }
+
+        .key {
+            color: #fcd34d;
+        }
+
+        /* --- Animations --- */
+        .animate-in {
+            animation: slideUp 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Tom Select Overrides --- */
+        .ts-control {
+            border-radius: var(--input-radius);
+            border: 1px solid var(--border-color) !important;
+            padding: 0.65rem 0.85rem !important;
+            box-shadow: none !important;
+        }
+
+        .ts-dropdown {
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+        }
+
+        .ts-dropdown .option {
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+
+        .ts-dropdown .active {
+            background-color: #eff6ff;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Üst Bilgi Alanı (Header) -->
+    <header class="app-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                    style="width: 48px; height: 48px; font-size: 1.25rem;">
+                    <i class="fa-solid fa-industry"></i>
+                </div>
+                <div>
+                    <div class="brand-title">Üretim Hesaplama</div>
+                    <div class="brand-subtitle">AARO Entegrasyon Sistemi</div>
+                </div>
+            </div>
+            <!-- Sayfayı Yenile Butonu -->
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="window.location.reload()">
+                <i class="fa-solid fa-rotate-right me-2"></i>Sıfırla
+            </button>
+        </div>
+    </header>
+
+    <div class="container animate-in">
+        <div class="row g-4">
+
+            <!-- Sol Yan Menü: Parametreler ve Girdiler -->
+            <div class="col-lg-3">
+                <div class="custom-card h-100">
+                    <div class="card-header-styled">
+                        <span class="card-title-text"><i
+                                class="fa-solid fa-sliders me-2 text-primary"></i>Parametreler</span>
+
+                        <!-- Ürün Grubu Seçimi (Su, Yağ, Hava) -->
+                        <select class="form-select form-select-sm w-auto" id="productGroup" style="min-width: 140px;">
+                            <option value="default" selected>Su Radyatörü</option>
+                            <option value="group1">Yağ Radyatörü</option>
+                            <option value="group2">Hava Radyatörü</option>
+                        </select>
+                    </div>
+                    <div class="card-body-styled">
+                        <form id="calcForm">
+                            <div class="mb-4">
+                                <label class="form-label">Model Adı</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted"><i
+                                            class="fa-solid fa-tag"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" id="modelType"
+                                        placeholder="Örn: JCB 200">
+                                </div>
+                            </div>
+
+                            <div class="bg-light p-3 rounded-3 mb-4">
+                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem;">Petek
+                                    Ölçüleri (mm)</h6>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label">Boy</label>
+                                        <input type="number" class="form-control" id="petekBoyu" value="860">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">En</label>
+                                        <input type="number" class="form-control" id="petekEni" value="430">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Kalınlık</label>
+                                        <input type="number" class="form-control" id="kalinlik" value="115">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Sıra Sayısı</label>
+                                        <input type="number" class="form-control" id="siraSayisi" value="30">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-light p-3 rounded-3 mb-4">
+                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem;">Bileşen
+                                    Detayları (mm)</h6>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label">İç Fin</label>
+                                        <input type="number" class="form-control" id="icFinKalinlik" step="0.1"
+                                            value="3">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Dış Fin</label>
+                                        <input type="number" class="form-control" id="disFinKalinlik" step="0.1"
+                                            value="10.3">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">ALM Klad</label>
+                                        <input type="number" class="form-control" id="almKladKalinlik" step="0.1"
+                                            value="0.6">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Adet</label>
+                                        <input type="number" class="form-control" id="sogutucuAdedi" value="2">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-primary-custom" onclick="calculate()">
+                                <i class="fa-solid fa-calculator"></i> Hesapla
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ İçerik Alanı: Sonuçlar ve Entegrasyon İşlemleri -->
+            <div class="col-lg-9">
+
+                <!-- Hızlı İstatistik Kartları -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Yan Kuşak Kalınlığı</div>
+                            <div class="stat-value" id="resYanKusakKalinligi">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card"
+                            style="background-color: #f0f7ff; border: 2px solid var(--primary-color);">
+                            <div class="stat-label text-primary" style="font-weight: 700;">Sabit Sayı</div>
+                            <div class="stat-input-wrapper mt-1">
+                                <input type="number"
+                                    class="form-control text-center bg-transparent border-0 p-0 fw-bold text-primary"
+                                    id="resSabitSayi" step="0.1" style="font-size: 2.5rem; box-shadow: none;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Toplam Parça</div>
+                            <div class="stat-value text-dark" id="resToplamParca">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bileşen Listesi ve Hesaplamalar Tablosu -->
+                <div class="custom-card">
+                    <div class="card-header-styled">
+                        <span class="card-title-text"><i class="fa-solid fa-list-check me-2 text-success"></i>İş Takibi
+                            & Hesaplar</span>
+                    </div>
+                    <div class="card-body-styled p-0 overflow-hidden">
+                        <div class="table-responsive">
+                            <table class="table-rounded">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 15%">Bileşen</th>
+                                        <th style="width: 15%">Hesaplanan Ölçü</th>
+                                        <th style="width: 8%" class="text-center">Adet</th>
+                                        <th style="width: 47%">Stok Bağlantısı</th>
+                                        <th style="width: 15%">Notlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsBody">
+                                    <!-- JavaScript tarafından doldurulacak -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integration Process -->
+                <div class="custom-card border-primary" style="border-width: 2px;">
+                    <div class="card-header-styled bg-primary bg-opacity-10">
+                        <span class="card-title-text text-primary"><i class="fa-solid fa-network-wired me-2"></i>AARO
+                            Entegrasyon</span>
+                    </div>
+                    <div class="card-body-styled">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-5">
+                                <label class="form-label">Reçete Kodu</label>
+                                <input type="text" class="form-control" id="receteKodu" placeholder="REC-YYYY-001">
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label">Reçete Açıklaması</label>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" id="receteAdi"
+                                        placeholder="Üretim Reçetesi...">
+                                    <button class="btn btn-primary btn-lg shadow-sm px-4"
+                                        onclick="startIntegrationProcess()" id="startProcessBtn"
+                                        style="white-space: nowrap;">
+                                        <i class="fa-solid fa-play"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validation Warning Box -->
+                        <div id="validationWarning" class="alert alert-warning d-none animate-in"
+                            style="border-radius: var(--input-radius); border-left: 5px solid var(--warning-color);">
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-triangle-exclamation fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1 fw-bold">Dikkat: Eşleştirme Uyarısı</h6>
+                                    <p class="mb-0 small" id="validationText"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-light my-4">
+
+                        <h6 class="text-muted fw-bold text-uppercase mb-4"
+                            style="font-size: 0.8rem; letter-spacing: 0.05em;">İşlem Akışı</h6>
+
+                        <div class="timeline-container" id="processSteps">
+                            <!-- Adım 1: Reçete Kartı Oluşturma -->
+                            <div class="timeline-step" id="step_recipe" onclick="showStepDetails('step_recipe')">
+                                <div class="timeline-connector"></div>
+                                <div class="timeline-marker"><i class="fa-solid fa-1"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="text-dark">Reçete Kartı Oluşturma</h6>
+                                    <p id="status_recipe">Başlangıç Bekleniyor...</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="timeline-step" id="step_fetch_ingredients"
+                                onclick="showStepDetails('step_fetch_ingredients')">
+                                <div class="timeline-connector"></div>
+                                <div class="timeline-marker"><i class="fa-solid fa-2"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="text-dark">Hammadde Verilerini Çekme</h6>
+                                    <p id="status_fetch_ingredients">Bekleniyor...</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="timeline-step" id="step_update_ingredients"
+                                onclick="showStepDetails('step_update_ingredients')">
+                                <div class="timeline-connector"></div>
+                                <div class="timeline-marker"><i class="fa-solid fa-3"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="text-dark">Hammadde Güncelleme & Eşleştirme</h6>
+                                    <p id="status_update_ingredients">Bekleniyor...</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="timeline-step" id="step_fetch_mamuls"
+                                onclick="showStepDetails('step_fetch_mamuls')">
+                                <div class="timeline-connector"></div>
+                                <div class="timeline-marker"><i class="fa-solid fa-4"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="text-dark">Mamül Verilerini Çekme</h6>
+                                    <p id="status_fetch_mamuls">Bekleniyor...</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 5 -->
+                            <div class="timeline-step" id="step_update_mamuls"
+                                onclick="showStepDetails('step_update_mamuls')">
+                                <div class="timeline-marker"><i class="fa-solid fa-5"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="text-dark">Mamül Güncelleme & Eşleştirme</h6>
+                                    <p id="status_update_mamuls">Bekleniyor...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirim (Toast) Bileşeni -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-4">
+        <div id="liveToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert"
+            aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fs-6">
+                    <i class="fa-solid fa-circle-check me-2"></i> <span id="toastBody">İşlem başarılı.</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark ps-2">API İşlem Detayları</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body modal-body-details p-4">
+                    <div class="row g-4 h-100">
+                        <div class="col-md-6 h-100 d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Giden
+                                    İstek (Payload)</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
+                            </div>
+                            <pre class="json-view flex-grow-1 shadow-inner" id="modalPayload"></pre>
+                        </div>
+                        <div class="col-md-6 h-100 d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">Gelen
+                                    Cevap (Response)</span>
+                                <i class="fa-solid fa-download text-muted"></i>
+                            </div>
+                            <pre class="json-view flex-grow-1 shadow-inner" id="modalResponse"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+    <script>
+        // --- Global Değişkenler ---
+        let allProducts = []; // API'den çekilen tüm stok listesi
+        let tomSelectInstances = []; // TomSelect (arama motorlu select) nesneleri
+        let createdReceteID = 0; // Yeni oluşturulan reçetenin ID'si
+        let createdReceteKodu = ""; // Yeni oluşturulan reçetenin kodu
+
+        // Modal için işlem logları
+        let stepLogs = {};
+
+        // Tablo satırlarını tanımlayan sabitler
+        const ROW_IDS = ['disFin', 'icFin', 'klad', 'kisa', 'uzun', 'yan'];
+        const ROW_NAMES = ["DIŞ FİN", "İÇ FİN (DIŞ)", "KLAD ALM", "KISA KARE", "UZUN ÇUBUK", "YAN KUŞAK"];
+        const API_TOKEN = 'pat_Wk9Q2PaNZiYm2mPdxLE1uZu5k4Mhvuj9GYg6n03XcoQ';
+
+        // Mamül Kodları ile Satır ID'lerinin eşleştirilmesi
+        const MAMUL_MAPPING = {
+            '000032': 'disFin',
+            '000033': 'icFin',
+            '000034': 'klad',
+            '000035': 'kisa',
+            '000036': 'uzun',
+            '000037': 'yan'
+        };
+
+        // --- Ürün Grubu Ayarları ve Hesaplama Mantığı ---
+        const PRODUCT_CONFIGS = {
+            'default': { // Su Radyatörü Mantığı
+                label: 'Su Radyatörü',
+                copyRecipeID: 52, // Kopyalanacak şablon reçete ID
+                defaults: { petekBoyu: 860, petekEni: 430, kalinlik: 115, icFin: 3, disFin: 10.3, almKlad: 0.6, sira: 30, sogutucu: 2 },
+                calculate: (pd) => {
+                    const yanKusakKalinlik = pd.kalinlik <= 63 ? 3 : 4;
+                    const disFinAdet = pd.sira * pd.sogutucu;
+                    const icFinAdet = Math.round((pd.petekBoyu / 300) * disFinAdet + 9);
+                    const commonAdet = (2 * disFinAdet) + 2;
+                    const yanKusakAdet = 2 * pd.sogutucu;
+
+                    return {
+                        yanKusakKalinlik,
+                        qties: {
+                            'disFin': disFinAdet,
+                            'icFin': icFinAdet,
+                            'klad': commonAdet,
+                            'kisa': commonAdet,
+                            'uzun': commonAdet,
+                            'yan': yanKusakAdet
+                        },
+                        measures: {
+                            'disFin': `${pd.petekBoyu - 20} X ${pd.kalinlik} X ${pd.disFin}`,
+                            'icFin': `${pd.kalinlik} X ${pd.icFin}`,
+                            'klad': `${pd.petekBoyu} X ${pd.kalinlik} X ${pd.almKlad}`,
+                            'kisa': `${pd.kalinlik} X ${pd.disFin}`,
+                            'uzun': `${pd.petekBoyu} X ${pd.icFin}`,
+                            'yan': `${pd.petekBoyu} X ${pd.kalinlik} X ${yanKusakKalinlik}`
+                        },
+                        notes: {}
+                    };
+                }
+            },
+            'group1': {
+                label: 'Yağ Radyatörü',
+                copyRecipeID: 60,
+                defaults: { petekBoyu: 800, petekEni: 550, kalinlik: 94, icFin: 3, disFin: 10.3, almKlad: 0.8, sira: 37, sogutucu: 2 },
+                calculate: (pd) => {
+                    const yanKusakKalinlik = pd.kalinlik <= 63 ? 3 : 4;
+                    const disFinAdet = pd.sira * pd.sogutucu;
+
+                    // User provided formula:
+                    // =EĞER(B11>=3;YUVARLA((B8/300)*C13*B11+10;0);YUVARLA((B8/300)*C13*B11+4;0))
+                    // B11: sogutucuAdedi, B8: petekBoyu, C13: siraSayisi
+                    const icFinAdet = pd.sogutucu >= 3
+                        ? Math.round((pd.petekBoyu / 300) * pd.sira * pd.sogutucu + 10)
+                        : Math.round((pd.petekBoyu / 300) * pd.sira * pd.sogutucu + 4);
+
+                    // User formula for Klad Alm: =EĞER((B11>=4);(2*C18+2);(2*C18+2))
+                    const kladAdet = pd.sogutucu >= 4
+                        ? (2 * disFinAdet) + 2
+                        : (2 * disFinAdet) + 2;
+
+                    // User formula for Kısa Kare: =(2*C18+2)
+                    const kisaAdet = (2 * disFinAdet) + 2;
+
+                    // User formula for Uzun Çubuk: =(2*C18+2)
+                    const uzunAdet = (2 * disFinAdet) + 2;
+
+                    // User formula for Yan Kuşak: =(2*B11)
+                    const yanKusakAdet = 2 * pd.sogutucu;
+
+                    return {
+                        yanKusakKalinlik,
+                        qties: {
+                            'disFin': disFinAdet,
+                            'icFin': icFinAdet,
+                            'klad': kladAdet,
+                            'kisa': kisaAdet,
+                            'uzun': uzunAdet,
+                            'yan': yanKusakAdet
+                        },
+                        measures: {
+                            'disFin': `${pd.petekBoyu - 20} X ${pd.kalinlik} X ${pd.disFin}`,
+                            'icFin': `${pd.kalinlik} X ${pd.icFin}`,
+                            'klad': `${pd.petekBoyu} X ${pd.kalinlik} X ${pd.almKlad}`,
+                            'kisa': `${pd.kalinlik} X ${pd.disFin}`,
+                            'uzun': `${pd.petekBoyu} X ${pd.icFin}`,
+                            'yan': `${pd.petekBoyu} X ${pd.kalinlik} X ${yanKusakKalinlik}`
+                        },
+                        notes: {}
+                    };
+                }
+            },
+            'group2': {
+                label: 'Hava Radyatörü',
+                copyRecipeID: 59,
+                defaults: { petekBoyu: 810, petekEni: 270, kalinlik: 140, icFin: 6.5, disFin: 10.3, almKlad: 0.8, sira: 15, sogutucu: 1 },
+                calculate: (pd) => {
+                    const yanKusakKalinlik = pd.kalinlik <= 63 ? 3 : 4;
+
+                    // User formula for Dış Fin: =ÇARPIM(C13;B11)
+                    const disFinAdet = pd.sira * pd.sogutucu;
+
+                    // User formula for İç Fin: =YUVARLA((B8/300)*(C18)+9;0)
+                    // B8: petekBoyu, C18: disFinAdet
+                    const icFinAdet = Math.round((pd.petekBoyu / 300) * disFinAdet + 9);
+
+                    // User formula for Klad Alm: =EĞER((B11>=4);(2*C18+2);(2*C18+2))
+                    const kladAdet = pd.sogutucu >= 4
+                        ? (2 * disFinAdet) + 2
+                        : (2 * disFinAdet) + 2;
+
+                    // User formula for Kısa Kare: =(2*C18+2)
+                    const kisaAdet = (2 * disFinAdet) + 2;
+
+                    // User formula for Uzun Çubuk: =(2*C18+2)
+                    const uzunAdet = (2 * disFinAdet) + 2;
+
+                    // User formula for Yan Kuşak: =(2*B11)
+                    const yanKusakAdet = 2 * pd.sogutucu;
+
+                    return {
+                        yanKusakKalinlik,
+                        qties: {
+                            'disFin': disFinAdet,
+                            'icFin': icFinAdet,
+                            'klad': kladAdet,
+                            'kisa': kisaAdet,
+                            'uzun': uzunAdet,
+                            'yan': yanKusakAdet
+                        },
+                        measures: {
+                            'disFin': `${pd.petekBoyu - 20} X ${pd.kalinlik} X ${pd.disFin}`,
+                            'icFin': `${pd.kalinlik} X ${pd.icFin}`,
+                            'klad': `${pd.petekBoyu} X ${pd.kalinlik} X ${pd.almKlad}`,
+                            'kisa': `${pd.kalinlik} X ${pd.disFin}`,
+                            'uzun': `${pd.petekBoyu} X ${pd.icFin}`,
+                            'yan': `${pd.petekBoyu} X ${pd.kalinlik} X ${yanKusakKalinlik}`
+                        },
+                        notes: {}
+                    };
+                }
+            }
+        };
+
+        const inputs = {
+            petekBoyu: document.getElementById('petekBoyu'),
+            petekEni: document.getElementById('petekEni'),
+            kalinlik: document.getElementById('kalinlik'),
+            icFin: document.getElementById('icFinKalinlik'),
+            disFin: document.getElementById('disFinKalinlik'),
+            almKlad: document.getElementById('almKladKalinlik'),
+            sira: document.getElementById('siraSayisi'),
+            sogutucu: document.getElementById('sogutucuAdedi')
+        };
+
+        // --- BAŞLANGIÇ (INIT) ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initTableStructure(); // Tabloyu oluştur
+            calculate(); // İlk hesaplamayı yap
+            fetchProducts(); // Stok listesini API'den çek
+        });
+
+        // 1. Tablo Iskeletini ve Arama Kutularını (TomSelect) Hazırlama
+        function initTableStructure() {
+            const tbody = document.getElementById('resultsBody');
+            let html = '';
+
+            ROW_IDS.forEach((id, index) => {
+                html += `
+                    <tr>
+                        <td class="fw-bold text-dark">${ROW_NAMES[index]}</td>
+                        <td><span class="measure-badge" id="measure-${id}">-</span></td>
+                        <td class="text-center fw-bold" id="qty-${id}">-</td>
+                        <td>
+                            <select id="select-${id}" class="form-select stock-select" placeholder="Ürün Ara...">
+                                <option value="">Yükleniyor...</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" id="note-${id}" placeholder="Not ekle...">
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+
+            ROW_IDS.forEach((id, index) => {
+                const el = document.getElementById(`select-${id}`);
+                const ts = new TomSelect(el, {
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    placeholder: "Ürün seçiniz...",
+                    onChange: () => {
+                        const validation = validateSelections();
+                        if (!validation.isValid) {
+                            showValidationWarning(validation.message);
+                        } else {
+                            hideValidationWarning();
+                        }
+                    },
+                    render: {
+                        option: function (data, escape) {
+                            return '<div class="option"><span class="fw-bold text-primary">' + escape(data.text.split('-')[0]) + '</span> - ' + escape(data.text.split('-').slice(1).join('-')) + '</div>';
+                        }
+                    }
+                });
+                tomSelectInstances.push(ts);
+            });
+        }
+
+        // 2. Stok Ürünlerini API'den Çekme (Etiketine göre filtreler)
+        async function fetchProducts() {
+            try {
+                const response = await fetch('https://erp.aaro.com.tr/api/Stok?Etiket5Adi=uretim&SayfaSatirSayisi=500', {
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+                if (data && data.Model) {
+                    allProducts = data.Model;
+                    updateDropdowns();
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showToast("Ürün listesi yüklenemedi.", "error");
+            }
+        }
+
+        // Çekilen ürünleri arama kutularına (dropdown) yükleme
+        function updateDropdowns() {
+            // Include Code in Display
+            const options = allProducts.map(p => ({
+                value: p.StokID,
+                text: `${p.StokKodu} - ${p.StokAdi}`
+            }));
+
+            tomSelectInstances.forEach(ts => {
+                ts.clear();
+                ts.clearOptions();
+                ts.addOption(options);
+                ts.refreshOptions(false);
+            });
+        }
+
+        // 3. Hesaplama Mantığı
+        function calculate() {
+            const groupKey = document.getElementById('productGroup').value;
+            const config = PRODUCT_CONFIGS[groupKey] || PRODUCT_CONFIGS['default'];
+
+            // Formdaki değerleri al
+            const pd = {
+                petekBoyu: parseFloat(inputs.petekBoyu.value) || 0,
+                petekEni: parseFloat(inputs.petekEni.value) || 0,
+                kalinlik: parseFloat(inputs.kalinlik.value) || 0,
+                icFin: parseFloat(inputs.icFin.value) || 0,
+                disFin: parseFloat(inputs.disFin.value) || 0,
+                almKlad: parseFloat(inputs.almKlad.value) || 0,
+                sira: parseFloat(inputs.sira.value) || 0,
+                sogutucu: parseFloat(inputs.sogutucu.value) || 1
+            };
+
+            // Sıra Sayısı hesaplaması için Sabit Sayıyı hesapla
+            const sabitSayiCalc = (pd.icFin + pd.disFin + (pd.almKlad * 2)).toFixed(1);
+
+            // Yeni Formül: Sıra sayısı = Yuvarla( PetekEni / SabitSayı; 0 )
+            const calculatedSira = Math.round(pd.petekEni / parseFloat(sabitSayiCalc)) || 0;
+            pd.sira = calculatedSira;
+
+            // UI'daki Sıra Sayısı girişini güncelle
+            inputs.sira.value = calculatedSira;
+
+            // Seçilen ürün grubuna göre hesaplamayı çalıştır (Su, Yağ veya Hava)
+            const result = config.calculate(pd);
+
+            // UI Güncellemeleri - Yan Kuşak ve Sabit Sayı
+            document.getElementById('resYanKusakKalinligi').innerText = result.yanKusakKalinlik + " mm";
+
+            const sabitSayiInput = document.getElementById('resSabitSayi');
+            if (document.activeElement !== sabitSayiInput) {
+                sabitSayiInput.value = sabitSayiCalc;
+            }
+
+            // Toplam parça sayısını hesapla ve yaz
+            const totalQty = Object.values(result.qties).reduce((a, b) => a + b, 0);
+            document.getElementById('resToplamParca').innerText = totalQty;
+
+            // Tablodaki satırları güncelle (Boy X En X Kalınlık ve Adet)
+            ROW_IDS.forEach(id => {
+                document.getElementById(`measure-${id}`).innerText = result.measures[id] || '-';
+                document.getElementById(`qty-${id}`).innerText = result.qties[id] || 0;
+
+                const noteInput = document.getElementById(`note-${id}`);
+                if (result.notes[id] && !noteInput.value) {
+                    noteInput.value = result.notes[id];
+                }
+            });
+        }
+
+        // 4. AARO Entegrasyon İş Akışı (Workflow)
+        async function startIntegrationProcess() {
+            const btn = document.getElementById('startProcessBtn');
+            const receteKodu = document.getElementById('receteKodu').value.trim();
+            const receteAdi = document.getElementById('receteAdi').value.trim();
+
+            if (!receteKodu || !receteAdi) {
+                alert("Lütfen Reçete Kodu ve Adını giriniz.");
+                return;
+            }
+
+            // Seçimlerin (stok eşleştirmelerinin) doğrulanması
+            const validation = validateSelections();
+            if (!validation.isValid) {
+                showValidationWarning(validation.message);
+                if (validation.hasMissing) {
+                    alert("Eksik stok seçimi var. Lütfen tüm bileşenleri seçiniz.");
+                    return;
+                }
+                if (!confirm("Tekrar eden ürünler var. Devam etmek istiyor musunuz?")) {
+                    return;
+                }
+            } else {
+                hideValidationWarning();
+            }
+
+            // Arayüzü işlem süresince kilitle
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>';
+
+            // Logları sıfırla
+            stepLogs = {};
+
+            try {
+                // ADIM 1: Şablonu temel alarak yeni Reçete Kartı oluştur
+                await stepCreateRecipe(receteKodu, receteAdi);
+
+                // ADIM 2: Oluşturulan reçetedeki varsayılan Hammaddeleri çek
+                const ingredients = await stepFetchIngredients(createdReceteID);
+
+                // ADIM 3: Hammaddeleri kullanıcının seçtiği stoklar ve hesaplanan miktarlar ile güncelle
+                await stepUpdateIngredients(ingredients);
+
+                // ADIM 4: Reçetedeki Mamül (Yarı Mamül) verilerini çek
+                const mamuls = await stepFetchMamuls(createdReceteID);
+
+                // ADIM 5: Mamülleri (Kalıp/İşlem aşamaları) güncel stoklarla eşleştir
+                await stepUpdateMamuls(mamuls);
+
+                showToast("Tüm işlemler başarıyla tamamlandı.");
+
+            } catch (error) {
+                console.error("Workflow Error:", error);
+                alert("İşlem sırasında hata oluştu: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            }
+        }
+
+        // ADIM 1: Yeni Reçete Kartı Oluşturma
+        async function stepCreateRecipe(code, name) {
+            const stepId = 'step_recipe';
+            updateStepStatus(stepId, 'active', 'İşleniyor...', 'fa-spinner fa-spin');
+
+            const groupKey = document.getElementById('productGroup').value;
+            const config = PRODUCT_CONFIGS[groupKey] || PRODUCT_CONFIGS['default'];
+            const copyId = config.copyRecipeID || 52; // Kopyalanacak şablon ID'si
+
+            const payload = {
+                "ReceteID": 0,
+                "ReceteKodu": code,
+                "ReceteAdi": name,
+                "Durum": true,
+                "TipID": 101001,
+                "DovizID": 1,
+                "KaynakReceteID": copyId,
+                "SirketID": 1,
+                "SubeID": 1,
+                "KopyalaID": copyId
+            };
+
+            try {
+                const response = await fetch('https://erp.aaro.com.tr/api/UrRecete', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    logStep(stepId, payload, errText);
+                    throw new Error(`API Hatası: ${response.status} - ${errText}`);
+                }
+
+                const result = await response.json();
+                logStep(stepId, payload, result);
+
+                if (result.Sonuc === true && result.Model) {
+                    createdReceteID = result.Model.ReceteID;
+                    createdReceteKodu = result.Model.ReceteKodu;
+                    updateStepStatus(stepId, 'success', `Tamamlandı (ID: ${createdReceteID})`, 'fa-check');
+                    return result;
+                } else {
+                    throw new Error(result.Mesajlar?.Mesaj || "Bilinmeyen API Hatası");
+                }
+
+            } catch (error) {
+                updateStepStatus(stepId, 'error', 'Hata: ' + error.message, 'fa-xmark');
+                throw error;
+            }
+        }
+
+        // ADIM 2: Yeni oluşturulan reçeteye şablondan gelen varsayılan hammadde satırlarını çekme
+        async function stepFetchIngredients(receteId) {
+            const stepId = 'step_fetch_ingredients';
+            updateStepStatus(stepId, 'active', 'Veriler çekiliyor...', 'fa-spinner fa-spin');
+
+            const url = `https://erp.aaro.com.tr/api/UrReceteOperasyonHammadde?Kisit.receteID=${receteId}&SayfaSatirSayisi=100&OperasyonKodu=000002,000001`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    logStep(stepId, { url: url }, errText);
+                    throw new Error(`API Hatası (Fetch): ${response.status} - ${errText}`);
+                }
+
+                const result = await response.json();
+                logStep(stepId, { url: url }, result);
+
+                if (result.Model && Array.isArray(result.Model) && result.Model.length > 0) {
+                    updateStepStatus(stepId, 'success', `${result.Model.length} Hammadde Bulundu`, 'fa-check');
+                    return result.Model;
+                } else {
+                    updateStepStatus(stepId, 'success', 'Hammadde bulunamadı (0 adet)', 'fa-triangle-exclamation');
+                    return [];
+                }
+
+            } catch (error) {
+                updateStepStatus(stepId, 'error', 'Hata: ' + error.message, 'fa-xmark');
+                throw error;
+            }
+        }
+
+        // ADIM 3: Hammadde satırlarını kullanıcının girdiği verilerle güncelleme
+        async function stepUpdateIngredients(ingredients) {
+            const stepId = 'step_update_ingredients';
+            updateStepStatus(stepId, 'active', 'Güncellemeler yapılıyor...', 'fa-spinner fa-spin');
+
+            const updatesLog = [];
+
+            try {
+                // Tablo satırlarını tek tek dönerek API'ye gönder
+                for (let i = 0; i < ROW_IDS.length; i++) {
+                    const rowId = ROW_IDS[i];
+
+                    if (i >= ingredients.length) {
+                        break;
+                    }
+
+                    const originalData = ingredients[i];
+                    const receteOpHammaddeID = originalData.ReceteOperasyonHammaddeID;
+
+                    const dropdown = tomSelectInstances[i];
+                    const selectedHammaddeID = dropdown.getValue();
+                    const measureText = document.getElementById(`measure-${rowId}`).innerText;
+                    const qtyText = document.getElementById(`qty-${rowId}`).innerText;
+                    const userNote = document.getElementById(`note-${rowId}`).value.trim();
+
+                    if (!selectedHammaddeID) {
+                        updatesLog.push({ row: ROW_NAMES[i], status: "Atlandı (Ürün Seçilmedi)" });
+                        continue;
+                    }
+
+                    // Not eklendiyse ölçü bilgisine ekle
+                    const finalDescription = userNote ? `${measureText} - Not: ${userNote}` : measureText;
+
+                    const payload = { ...originalData };
+                    payload.HammaddeID = parseInt(selectedHammaddeID);
+                    payload.Miktar = parseFloat(qtyText) || 0;
+                    payload.Aciklama = finalDescription;
+
+                    const updateUrl = `https://erp.aaro.com.tr/api/UrReceteOperasyonHammadde/${receteOpHammaddeID}`;
+
+                    const response = await fetch(updateUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${API_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const resText = await response.text();
+                    let resJson;
+                    try { resJson = JSON.parse(resText); } catch (e) { resJson = resText; }
+
+                    updatesLog.push({
+                        url: updateUrl,
+                        payload: payload,
+                        response: resJson
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Satır ${i} Güncelleme Başarısız: ${response.status}`);
+                    }
+                }
+
+                logStep(stepId, { info: "Toplu Güncelleme Logu" }, updatesLog);
+                updateStepStatus(stepId, 'success', 'Güncellemeler Tamamlandı', 'fa-check');
+
+            } catch (error) {
+                logStep(stepId, { partialLog: updatesLog }, error.message);
+                updateStepStatus(stepId, 'error', 'Hata: ' + error.message, 'fa-xmark');
+                throw error;
+            }
+        }
+
+        // ADIM 4: Reçetedeki Mamül (Yarı Mamül) verilerini API'den çekme
+        async function stepFetchMamuls(receteId) {
+            const stepId = 'step_fetch_mamuls';
+            updateStepStatus(stepId, 'active', 'Mamül verileri çekiliyor...', 'fa-spinner fa-spin');
+
+            const url = `https://erp.aaro.com.tr/api/UrReceteOperasyonMamul?receteID=${receteId}&SayfaSatirSayisi=100`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    logStep(stepId, { url: url }, errText);
+                    throw new Error(`API Hatası (Mamul Fetch): ${response.status} - ${errText}`);
+                }
+
+                const result = await response.json();
+                logStep(stepId, { url: url }, result);
+
+                if (result.Model && Array.isArray(result.Model) && result.Model.length > 0) {
+                    updateStepStatus(stepId, 'success', `${result.Model.length} Mamül Bulundu`, 'fa-check');
+                    return result.Model;
+                } else {
+                    updateStepStatus(stepId, 'success', 'Mamül bulunamadı (0 adet)', 'fa-triangle-exclamation');
+                    return [];
+                }
+
+            } catch (error) {
+                updateStepStatus(stepId, 'error', 'Hata: ' + error.message, 'fa-xmark');
+                throw error;
+            }
+        }
+
+        // ADIM 5: Mamülleri (Yarı Mamülleri) güncelleme
+        async function stepUpdateMamuls(mamuls) {
+            const stepId = 'step_update_mamuls';
+            updateStepStatus(stepId, 'active', 'Mamül güncellemeleri yapılıyor...', 'fa-spinner fa-spin');
+
+            const updatesLog = [];
+
+            try {
+                for (const mamulItem of mamuls) {
+                    const mamulKodu = mamulItem.MamulKodu;
+                    const rowId = MAMUL_MAPPING[mamulKodu]; // Koddan hangi satıra ait olduğunu bul
+
+                    // Eğer mamül kodu eşleştirme listemizde varsa
+                    if (rowId) {
+                        const rowIndex = ROW_IDS.indexOf(rowId);
+                        const dropdown = tomSelectInstances[rowIndex];
+                        const selectedHammaddeID = dropdown.getValue();
+                        const measureText = document.getElementById(`measure-${rowId}`).innerText;
+                        const qtyText = document.getElementById(`qty-${rowId}`).innerText;
+                        const userNote = document.getElementById(`note-${rowId}`).value.trim();
+
+                        if (!selectedHammaddeID) {
+                            updatesLog.push({ mamul: mamulKodu, status: "Atlandı (Stok Seçilmedi)" });
+                            continue;
+                        }
+
+                        const finalDescription = userNote ? `${measureText} - Not: ${userNote}` : measureText;
+
+                        const payload = {
+                            "ReceteOperasyonMamulID": mamulItem.ReceteOperasyonMamulID,
+                            "HammaddeMamulID": parseInt(selectedHammaddeID),
+                            "MamulMiktar": parseFloat(qtyText) || 0,
+                            "HamAciklama": finalDescription
+                        };
+
+                        const updateUrl = `https://erp.aaro.com.tr/api/UrReceteOperasyonMamul/YariMamulKaydet`;
+
+                        const response = await fetch(updateUrl, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${API_TOKEN}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const resText = await response.text();
+                        let resJson;
+                        try { resJson = JSON.parse(resText); } catch (e) { resJson = resText; }
+
+                        updatesLog.push({
+                            url: updateUrl,
+                            payload: payload,
+                            response: resJson
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Mamül Güncelleme Başarısız (${mamulKodu}): ${response.status}`);
+                        }
+                    }
+                }
+
+                logStep(stepId, { info: "Mamul Toplu Güncelleme Logu" }, updatesLog);
+                updateStepStatus(stepId, 'success', 'Mamül Güncellemeleri Tamamlandı', 'fa-check');
+
+            } catch (error) {
+                logStep(stepId, { partialLog: updatesLog }, error.message);
+                updateStepStatus(stepId, 'error', 'Hata: ' + error.message, 'fa-xmark');
+                throw error;
+            }
+        }
+
+        // İşlem akışındaki (timeline) adımların durumunu görsel olarak güncelleme
+        function updateStepStatus(stepId, className, text, iconClass) {
+            const el = document.getElementById(stepId);
+            const statusEl = document.getElementById(`status_${stepId.replace('step_', '')}`);
+            const marker = el.querySelector('.timeline-marker');
+
+            el.classList.remove('active', 'success', 'error');
+            if (className) el.classList.add(className);
+
+            if (statusEl) statusEl.innerText = text;
+            if (marker && iconClass) marker.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+        }
+
+        // Her adımın giden istek ve gelen cevabını modalda göstermek için kaydetme
+        function logStep(stepId, req, res) {
+            stepLogs[stepId] = { request: req, response: res };
+        }
+
+        // Adıma tıklandığında işlem loglarını modal içerisinde görüntüleme
+        function showStepDetails(stepId) {
+            if (!stepLogs[stepId]) return;
+            const log = stepLogs[stepId];
+            document.getElementById('modalPayload').innerHTML = syntaxHighlight(log.request);
+            document.getElementById('modalResponse').innerHTML = syntaxHighlight(log.response);
+            new bootstrap.Modal(document.getElementById('detailsModal')).show();
+        }
+
+        // JSON verilerini renkli ve okunabilir (highlight) hale getirme
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') {
+                json = JSON.stringify(json, undefined, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        // Bildirim Toast'ını Görüntüleme
+        function showToast(msg, type = 'success') {
+            const toastEl = document.getElementById('liveToast');
+            document.getElementById('toastBody').innerText = msg;
+
+            if (type === 'error') {
+                toastEl.classList.remove('bg-success');
+                toastEl.classList.add('bg-danger');
+            } else {
+                toastEl.classList.remove('bg-danger');
+                toastEl.classList.add('bg-success');
+            }
+
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        // Stok Seçimlerini Doğrulama (Eksik veya Tekrar eden var mı?)
+        function validateSelections() {
+            let missing = [];
+            let duplicateMap = {};
+            const labels = ROW_NAMES;
+
+            ROW_IDS.forEach((id, index) => {
+                const val = tomSelectInstances[index].getValue();
+                if (!val) {
+                    missing.push(labels[index]);
+                } else {
+                    if (!duplicateMap[val]) duplicateMap[val] = [];
+                    duplicateMap[val].push(labels[index]);
+                }
+            });
+
+            let duplicateNames = [];
+            for (let id in duplicateMap) {
+                if (duplicateMap[id].length > 1) {
+                    duplicateNames.push(duplicateMap[id].join(' ve '));
+                }
+            }
+
+            let messageParts = [];
+            if (missing.length > 0) {
+                messageParts.push(`Stok seçilmedi: <strong>${missing.join(', ')}</strong>`);
+            }
+            if (duplicateNames.length > 0) {
+                messageParts.push(`Tekrar eden ürünler var: <strong>${duplicateNames.join(' | ')}</strong>`);
+            }
+
+            return {
+                isValid: missing.length === 0 && duplicateNames.length === 0,
+                hasMissing: missing.length > 0,
+                message: messageParts.join('<br>')
+            };
+        }
+
+        // Doğrulama uyarı kutusunu gösterme
+        function showValidationWarning(msg) {
+            const el = document.getElementById('validationWarning');
+            const textEl = document.getElementById('validationText');
+            textEl.innerHTML = msg;
+            el.classList.remove('d-none');
+        }
+
+        // Doğrulama uyarı kutusunu gizleme
+        function hideValidationWarning() {
+            document.getElementById('validationWarning').classList.add('d-none');
+        }
+
+        // Ürün Grubu Değiştiğinde (Su, Yağ, Hava) varsayılan değerleri yükleme
+        document.getElementById('productGroup').addEventListener('change', (e) => {
+            const val = e.target.value;
+            const config = PRODUCT_CONFIGS[val];
+            if (config && config.defaults) {
+                const d = config.defaults;
+                inputs.petekBoyu.value = d.petekBoyu;
+                inputs.petekEni.value = d.petekEni;
+                inputs.kalinlik.value = d.kalinlik;
+                inputs.icFin.value = d.icFin;
+                inputs.disFin.value = d.disFin;
+                inputs.almKlad.value = d.almKlad;
+                inputs.sira.value = d.sira;
+                if (d.sogutucu) inputs.sogutucu.value = d.sogutucu;
+
+                // Reset notes on group change maybe? Or keep them? 
+                // Let's clear just in case they are specific to the group logic
+                ROW_IDS.forEach(id => {
+                    document.getElementById(`note-${id}`).value = "";
+                });
+
+                calculate();
+            }
+        });
+
+        // Tüm sayısal inputlar değiştikçe otomatik hesaplamayı tetikle
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+
+        // Model Adı yazıldıkça otomatik olarak Reçete Kodu ve Adını oluşturma (Senkronizasyon)
+        // Yazıdan URL dostu 'slug' oluşturma (Türkçe karakterleri dönüştürür)
+        function slugify(text) {
+            const trMap = {
+                'ç': 'c', 'Ç': 'C', 'ğ': 'g', 'Ğ': 'G', 'ş': 's', 'Ş': 'S', 'ü': 'u', 'Ü': 'U', 'ı': 'i', 'İ': 'I', 'ö': 'o', 'Ö': 'O'
+            };
+            for (let key in trMap) {
+                text = text.replace(new RegExp(key, 'g'), trMap[key]);
+            }
+            return text
+                .toString()
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-');
+        }
+
+        document.getElementById('modelType').addEventListener('input', (e) => {
+            const val = e.target.value;
+            const receteAdi = document.getElementById('receteAdi');
+            const receteKodu = document.getElementById('receteKodu');
+
+            receteAdi.value = val;
+            receteKodu.value = slugify(val).substring(0, 15);
+        });
+
+    </script>
+</body>
+
+</html>
